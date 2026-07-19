@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nebula Gu — Experience Atlas</title>
+<style>
+:root{
+  --blue:#0b4dff;
+  --ink:#111b30;
+  --muted:#77869f;
+  --bg:#e9f0ff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink)}
+body{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:
+    radial-gradient(circle at 50% 48%,rgba(255,255,255,.95),transparent 31%),
+    radial-gradient(circle at 80% 10%,rgba(98,139,255,.11),transparent 30%),
+    linear-gradient(135deg,#e3ecff 0%,#f6f8ff 52%,#e2ebfb 100%);
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(51,78,125,.032) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(51,78,125,.032) 1px,transparent 1px);
+  background-size:34px 34px;
+}
+nav{
+  position:fixed;z-index:100;left:0;right:0;top:0;height:62px;padding:0 34px;
+  display:grid;grid-template-columns:repeat(4,1fr);align-items:center;
+  font:650 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.09em;color:#3e4d66;
+}
+nav a{color:inherit;text-decoration:none}
+nav a:nth-child(2),nav a:nth-child(3){text-align:center}
+nav a:last-child{text-align:right}
+
+.page-title{
+  position:fixed;z-index:30;left:3.4vw;top:98px;pointer-events:none;
+  font-family:Georgia,"Times New Roman",serif;font-size:clamp(58px,6.1vw,112px);
+  line-height:.77;letter-spacing:-.065em;font-weight:400;
+}
+.page-title span{display:block;margin-left:10vw;color:rgba(17,27,48,.14)}
+.kicker{
+  position:fixed;z-index:30;right:3.8vw;top:106px;text-align:right;pointer-events:none;
+  font:650 9px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.13em;color:#7c8da8;
+}
+
+/* The real InfiniteMenu canvas is deliberately centered and dominant. */
+.menu-shell{
+  position:fixed;
+  z-index:10;
+  left:50%;
+  top:52%;
+  width:min(59vw,960px);
+  height:min(78vh,820px);
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+}
+.menu-shell::before,
+.menu-shell::after{
+  content:"";position:absolute;pointer-events:none;border-radius:50%;z-index:4;
+  left:50%;top:50%;transform:translate(-50%,-50%);
+  border:1px solid rgba(69,100,158,.10);
+}
+.menu-shell::before{width:94%;aspect-ratio:1/1}
+.menu-shell::after{width:64%;aspect-ratio:1/1;border-style:dashed}
+#infinite-grid-menu-canvas{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  cursor:grab;outline:none;
+  border-radius:50%;
+}
+#infinite-grid-menu-canvas:active{cursor:grabbing}
+
+/* Left category follows the original activeItem overlay idea, but stays outside the sphere. */
+.left-panel{
+  position:fixed;z-index:40;left:3.5vw;top:54%;transform:translateY(-50%);
+  width:19vw;min-width:235px;pointer-events:none;
+}
+.eyebrow{
+  font:700 9px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.11em;color:#75859f;margin-bottom:14px;
+}
+.category{
+  font-family:Georgia,"Times New Roman",serif;font-size:clamp(42px,3.8vw,70px);
+  line-height:.94;letter-spacing:-.055em;font-weight:400;
+}
+.category-en{
+  margin-top:13px;font:650 9px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.095em;color:#8b98ad;
+}
+.counter{
+  margin-top:30px;font:750 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--blue);
+}
+
+/* Right content panel */
+.right-panel{
+  position:fixed;z-index:40;right:3.5vw;top:53%;transform:translateY(-50%);
+  width:min(22vw,365px);min-width:310px;
+  padding:22px 23px 21px;
+  border:1px solid rgba(91,116,163,.13);
+  border-radius:24px;
+  background:rgba(245,248,255,.58);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  box-shadow:0 24px 58px rgba(44,68,114,.08);
+  pointer-events:none;
+}
+.item-year{
+  font:750 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.11em;color:var(--blue);
+}
+.item-title{
+  margin:12px 0 13px;font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(30px,2.3vw,42px);line-height:.96;letter-spacing:-.05em;font-weight:400;
+}
+.item-desc{font-size:12px;line-height:1.8;color:#52617a}
+.tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:17px}
+.tag{
+  padding:7px 9px;border-radius:999px;border:1px solid rgba(76,104,158,.17);
+  background:rgba(255,255,255,.50);
+  font:650 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.055em;color:#64748e;
+}
+
+/* Original component hides title/description while movement is active. */
+.overlay{
+  transition:opacity .5s ease,transform .5s ease;
+}
+.overlay.inactive{
+  opacity:0;
+  pointer-events:none;
+}
+.left-panel.inactive{transform:translateY(calc(-50% + 12px))}
+.right-panel.inactive{transform:translateY(calc(-50% + 12px))}
+.overlay.active{opacity:1}
+
+/* Adapted original central action button. */
+.action-button{
+  position:fixed;z-index:50;left:50%;bottom:30px;
+  width:54px;height:54px;border-radius:50%;
+  display:grid;place-items:center;
+  background:var(--blue);color:#fff;
+  border:5px solid rgba(255,255,255,.86);
+  box-shadow:0 14px 30px rgba(11,77,255,.22);
+  font-size:23px;line-height:1;
+  transition:.5s ease;pointer-events:none;
+}
+.action-button.active{transform:translateX(-50%) scale(1);opacity:1}
+.action-button.inactive{transform:translateX(-50%) scale(0);opacity:0}
+
+.drag-hint{
+  position:fixed;z-index:50;left:50%;bottom:94px;transform:translateX(-50%);
+  padding:9px 13px;border-radius:999px;border:1px solid rgba(77,107,160,.12);
+  background:rgba(255,255,255,.55);backdrop-filter:blur(10px);
+  font:650 8.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.1em;color:#73829a;
+  pointer-events:none;
+}
+.side-copy{
+  position:fixed;z-index:25;right:8px;top:50%;transform:translateY(-50%) rotate(180deg);
+  writing-mode:vertical-rl;
+  font:650 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;color:#8190a6;
+}
+
+@media(max-width:1250px){
+  .menu-shell{width:58vw;height:72vh}
+  .left-panel{left:24px;width:220px;min-width:0}
+  .right-panel{right:24px;width:290px;min-width:0}
+}
+@media(max-width:900px){
+  .page-title{left:18px;top:78px;font-size:52px}
+  .page-title span{margin-left:54px}
+  .kicker,.side-copy{display:none}
+  .menu-shell{top:45%;width:92vw;height:62vh}
+  .left-panel{left:18px;top:145px;transform:none;width:190px}
+  .left-panel.inactive{transform:translateY(10px)}
+  .category{font-size:31px}
+  .right-panel{left:16px;right:16px;bottom:76px;top:auto;transform:none;width:auto}
+  .right-panel.inactive{transform:translateY(10px)}
+  .item-title{font-size:27px}
+  .item-desc{line-height:1.55}
+  .drag-hint{bottom:24px}
+  .action-button{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .overlay,.action-button{transition:none!important}
+}
+</style>
+
+<style id="nebula-sphere-v5">
+html,body{width:100%;height:100%;overflow:hidden!important;background:#eef6ff!important}
+body{background:radial-gradient(circle at 54% 46%,rgba(255,255,255,.98),transparent 29%),linear-gradient(135deg,#e8f5ff 0%,#f8fbff 52%,#dff1ff 100%)!important}
+nav{display:none!important}
+.page-title{top:64px!important;left:3vw!important;font-size:clamp(46px,5vw,82px)!important}.page-title span{margin-left:8vw!important;color:rgba(16,56,104,.12)!important}
+.kicker{top:70px!important;right:3vw!important;font-size:8px!important;color:#6f88a8!important}
+.menu-shell{top:53%!important;width:min(57vw,900px)!important;height:min(76vh,760px)!important}
+.left-panel{left:3vw!important;width:18vw!important;min-width:220px!important}.category{font-size:clamp(34px,3.2vw,58px)!important}.category-en{font-size:8px!important}.counter{margin-top:20px!important}
+.right-panel{right:3vw!important;width:min(21vw,330px)!important;min-width:285px!important;padding:18px 19px!important;border-radius:20px!important}.item-title{font-size:clamp(24px,2vw,36px)!important}.item-desc{font-size:10px!important;line-height:1.65!important}.tag{font-size:7px!important;padding:6px 8px!important}
+.drag-hint{bottom:24px!important;font-size:7.7px!important;letter-spacing:.08em!important;background:rgba(255,255,255,.76)!important}.action-button{bottom:22px!important;width:48px!important;height:48px!important}
+.side-copy{display:none!important}
+@media(max-width:900px){.page-title{top:56px!important}.menu-shell{top:47%!important;width:92vw!important;height:60vh!important}.right-panel{min-width:0!important}.drag-hint{bottom:18px!important}}
+</style>
+
+</head>
+<body>
+<nav>
+  <a href="#">HOME</a>
+  <a href="#">WORKS</a>
+  <a href="#">ABOUT</a>
+  <a href="#">CONTACT</a>
+</nav>
+
+<div class="page-title">Experience <span>Atlas</span></div>
+<div class="kicker">DESIGN JOURNEY / PRACTICE / GROWTH<br>DRAG THE SPHERE TO EXPLORE</div>
+
+<div class="menu-shell">
+  <canvas id="infinite-grid-menu-canvas"></canvas>
+</div>
+
+<aside class="left-panel overlay active" id="leftPanel">
+  <div class="eyebrow">CATEGORY / 经历类别</div>
+  <div class="category" id="category"></div>
+  <div class="category-en" id="categoryEn"></div>
+  <div class="counter" id="counter"></div>
+</aside>
+
+<aside class="right-panel overlay active" id="rightPanel">
+  <div class="item-year" id="itemYear"></div>
+  <div class="item-title" id="itemTitle"></div>
+  <div class="item-desc" id="itemDesc"></div>
+  <div class="tags" id="tags"></div>
+</aside>
+
+<div class="drag-hint">DRAG TO EXPLORE DIFFERENT CONTENT · 拖拽查看不同内容</div>
+<div class="action-button active" id="actionButton">↗</div>
+<div class="side-copy">KEEP SWIMMING UNTIL THE SEA TURNS BLUE</div>
+
+<script>
+/* -------------------------------------------------------------
+   Minimal gl-matrix compatible subset, embedded so this HTML is
+   fully standalone. The InfiniteMenu interaction below mirrors
+   the uploaded React Bits component structure and equations.
+-------------------------------------------------------------- */
+const vec2={
+  create:()=>new Float32Array(2),
+  fromValues:(x,y)=>new Float32Array([x,y]),
+  set:(o,x,y)=>(o[0]=x,o[1]=y,o),
+  copy:(o,a)=>(o[0]=a[0],o[1]=a[1],o),
+  sub:(o,a,b)=>(o[0]=a[0]-b[0],o[1]=a[1]-b[1],o),
+  scale:(o,a,s)=>(o[0]=a[0]*s,o[1]=a[1]*s,o),
+  add:(o,a,b)=>(o[0]=a[0]+b[0],o[1]=a[1]+b[1],o),
+  sqrLen:a=>a[0]*a[0]+a[1]*a[1]
+};
+const vec3={
+  create:()=>new Float32Array(3),
+  fromValues:(x,y,z)=>new Float32Array([x,y,z]),
+  clone:a=>new Float32Array(a),
+  normalize:(o,a)=>{let l=Math.hypot(a[0],a[1],a[2]);if(l>0){l=1/l;o[0]=a[0]*l;o[1]=a[1]*l;o[2]=a[2]*l}return o},
+  scale:(o,a,s)=>(o[0]=a[0]*s,o[1]=a[1]*s,o[2]=a[2]*s,o),
+  cross:(o,a,b)=>{const ax=a[0],ay=a[1],az=a[2],bx=b[0],by=b[1],bz=b[2];o[0]=ay*bz-az*by;o[1]=az*bx-ax*bz;o[2]=ax*by-ay*bx;return o},
+  dot:(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],
+  squaredDistance:(a,b)=>{const x=a[0]-b[0],y=a[1]-b[1],z=a[2]-b[2];return x*x+y*y+z*z},
+  negate:(o,a)=>(o[0]=-a[0],o[1]=-a[1],o[2]=-a[2],o),
+  transformQuat:(o,a,q)=>{const x=a[0],y=a[1],z=a[2],qx=q[0],qy=q[1],qz=q[2],qw=q[3];const ix=qw*x+qy*z-qz*y,iy=qw*y+qz*x-qx*z,iz=qw*z+qx*y-qy*x,iw=-qx*x-qy*y-qz*z;o[0]=ix*qw+iw*-qx+iy*-qz-iz*-qy;o[1]=iy*qw+iw*-qy+iz*-qx-ix*-qz;o[2]=iz*qw+iw*-qz+ix*-qy-iy*-qx;return o}
+};
+const quat={
+  create:()=>new Float32Array([0,0,0,1]),
+  normalize:(o,a)=>{let l=Math.hypot(a[0],a[1],a[2],a[3]);if(l>0){l=1/l;o[0]=a[0]*l;o[1]=a[1]*l;o[2]=a[2]*l;o[3]=a[3]*l}return o},
+  multiply:(o,a,b)=>{const ax=a[0],ay=a[1],az=a[2],aw=a[3],bx=b[0],by=b[1],bz=b[2],bw=b[3];o[0]=ax*bw+aw*bx+ay*bz-az*by;o[1]=ay*bw+aw*by+az*bx-ax*bz;o[2]=az*bw+aw*bz+ax*by-ay*bx;o[3]=aw*bw-ax*bx-ay*by-az*bz;return o},
+  setAxisAngle:(o,axis,rad)=>{rad*=.5;const s=Math.sin(rad);o[0]=s*axis[0];o[1]=s*axis[1];o[2]=s*axis[2];o[3]=Math.cos(rad);return o},
+  conjugate:(o,a)=>(o[0]=-a[0],o[1]=-a[1],o[2]=-a[2],o[3]=a[3],o),
+  slerp:(o,a,b,t)=>{let ax=a[0],ay=a[1],az=a[2],aw=a[3],bx=b[0],by=b[1],bz=b[2],bw=b[3];let cos=ax*bx+ay*by+az*bz+aw*bw;if(cos<0){cos=-cos;bx=-bx;by=-by;bz=-bz;bw=-bw}let s0,s1;if(1-cos>1e-6){const om=Math.acos(cos),sin=Math.sin(om);s0=Math.sin((1-t)*om)/sin;s1=Math.sin(t*om)/sin}else{s0=1-t;s1=t}o[0]=s0*ax+s1*bx;o[1]=s0*ay+s1*by;o[2]=s0*az+s1*bz;o[3]=s0*aw+s1*bw;return o}
+};
+const mat4={
+  create:()=>new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]),
+  copy:(o,a)=>(o.set(a),o),
+  fromTranslation:(o,v)=>(o.set([1,0,0,0,0,1,0,0,0,0,1,0,v[0],v[1],v[2],1]),o),
+  fromScaling:(o,v)=>(o.set([v[0],0,0,0,0,v[1],0,0,0,0,v[2],0,0,0,0,1]),o),
+  multiply:(o,a,b)=>{const r=new Float32Array(16);for(let c=0;c<4;c++)for(let rr=0;rr<4;rr++)r[c*4+rr]=a[0*4+rr]*b[c*4+0]+a[1*4+rr]*b[c*4+1]+a[2*4+rr]*b[c*4+2]+a[3*4+rr]*b[c*4+3];o.set(r);return o},
+  perspective:(o,fovy,aspect,near,far)=>{const f=1/Math.tan(fovy/2),nf=1/(near-far);o.set([f/aspect,0,0,0,0,f,0,0,0,0,(far+near)*nf,-1,0,0,2*far*near*nf,0]);return o},
+  targetTo:(o,eye,target,up)=>{const z=vec3.create();z[0]=eye[0]-target[0];z[1]=eye[1]-target[1];z[2]=eye[2]-target[2];vec3.normalize(z,z);const x=vec3.create();vec3.cross(x,up,z);if(Math.hypot(...x)<1e-6){x[0]=1}vec3.normalize(x,x);const y=vec3.create();vec3.cross(y,z,x);o.set([x[0],x[1],x[2],0,y[0],y[1],y[2],0,z[0],z[1],z[2],0,eye[0],eye[1],eye[2],1]);return o},
+  invert:(o,a)=>{const m=a;const inv=new Float32Array(16);
+    inv[0]=m[5]*m[10]*m[15]-m[5]*m[11]*m[14]-m[9]*m[6]*m[15]+m[9]*m[7]*m[14]+m[13]*m[6]*m[11]-m[13]*m[7]*m[10];
+    inv[4]=-m[4]*m[10]*m[15]+m[4]*m[11]*m[14]+m[8]*m[6]*m[15]-m[8]*m[7]*m[14]-m[12]*m[6]*m[11]+m[12]*m[7]*m[10];
+    inv[8]=m[4]*m[9]*m[15]-m[4]*m[11]*m[13]-m[8]*m[5]*m[15]+m[8]*m[7]*m[13]+m[12]*m[5]*m[11]-m[12]*m[7]*m[9];
+    inv[12]=-m[4]*m[9]*m[14]+m[4]*m[10]*m[13]+m[8]*m[5]*m[14]-m[8]*m[6]*m[13]-m[12]*m[5]*m[10]+m[12]*m[6]*m[9];
+    inv[1]=-m[1]*m[10]*m[15]+m[1]*m[11]*m[14]+m[9]*m[2]*m[15]-m[9]*m[3]*m[14]-m[13]*m[2]*m[11]+m[13]*m[3]*m[10];
+    inv[5]=m[0]*m[10]*m[15]-m[0]*m[11]*m[14]-m[8]*m[2]*m[15]+m[8]*m[3]*m[14]+m[12]*m[2]*m[11]-m[12]*m[3]*m[10];
+    inv[9]=-m[0]*m[9]*m[15]+m[0]*m[11]*m[13]+m[8]*m[1]*m[15]-m[8]*m[3]*m[13]-m[12]*m[1]*m[11]+m[12]*m[3]*m[9];
+    inv[13]=m[0]*m[9]*m[14]-m[0]*m[10]*m[13]-m[8]*m[1]*m[14]+m[8]*m[2]*m[13]+m[12]*m[1]*m[10]-m[12]*m[2]*m[9];
+    inv[2]=m[1]*m[6]*m[15]-m[1]*m[7]*m[14]-m[5]*m[2]*m[15]+m[5]*m[3]*m[14]+m[13]*m[2]*m[7]-m[13]*m[3]*m[6];
+    inv[6]=-m[0]*m[6]*m[15]+m[0]*m[7]*m[14]+m[4]*m[2]*m[15]-m[4]*m[3]*m[14]-m[12]*m[2]*m[7]+m[12]*m[3]*m[6];
+    inv[10]=m[0]*m[5]*m[15]-m[0]*m[7]*m[13]-m[4]*m[1]*m[15]+m[4]*m[3]*m[13]+m[12]*m[1]*m[7]-m[12]*m[3]*m[5];
+    inv[14]=-m[0]*m[5]*m[14]+m[0]*m[6]*m[13]+m[4]*m[1]*m[14]-m[4]*m[2]*m[13]-m[12]*m[1]*m[6]+m[12]*m[2]*m[5];
+    inv[3]=-m[1]*m[6]*m[11]+m[1]*m[7]*m[10]+m[5]*m[2]*m[11]-m[5]*m[3]*m[10]-m[9]*m[2]*m[7]+m[9]*m[3]*m[6];
+    inv[7]=m[0]*m[6]*m[11]-m[0]*m[7]*m[10]-m[4]*m[2]*m[11]+m[4]*m[3]*m[10]+m[8]*m[2]*m[7]-m[8]*m[3]*m[6];
+    inv[11]=-m[0]*m[5]*m[11]+m[0]*m[7]*m[9]+m[4]*m[1]*m[11]-m[4]*m[3]*m[9]-m[8]*m[1]*m[7]+m[8]*m[3]*m[5];
+    inv[15]=m[0]*m[5]*m[10]-m[0]*m[6]*m[9]-m[4]*m[1]*m[10]+m[4]*m[2]*m[9]+m[8]*m[1]*m[6]-m[8]*m[2]*m[5];
+    let det=m[0]*inv[0]+m[1]*inv[4]+m[2]*inv[8]+m[3]*inv[12];if(!det)return null;det=1/det;for(let i=0;i<16;i++)o[i]=inv[i]*det;return o}
+};
+
+const items = [{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"二十四节气非遗文创","year":"2023—2026","description":"以节气文化为线索的非遗视觉与文创探索","tags":["设计项目","2023—2026"],"image":"/assets/media/e5732707e697d2576861.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"AIGC 非遗视频","year":"2023—2026","description":"用生成式影像拓展传统文化的动态叙事","tags":["设计项目","2023—2026"],"image":"/assets/media/990e85d8988fbba1190a.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"可持续包装","year":"2023—2026","description":"面向循环使用场景的包装结构设计","tags":["设计项目","2023—2026"],"image":"/assets/media/f9e7372e1a27eabff472.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"可持续堆肥桶","year":"2023—2026","description":"围绕家庭有机废弃物处理的产品系统","tags":["设计项目","2023—2026"],"image":"/assets/media/f610179e10e61166c2ac.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"智能门锁","year":"2023—2026","description":"从结构、交互与安全体验出发的智能硬件设计","tags":["设计项目","2023—2026"],"image":"/assets/media/68b1386cdbc4b0dafdff.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"赛车队 25 年涂装","year":"2023—2026","description":"品牌识别与速度感结合的车辆视觉设计","tags":["设计项目","2023—2026"],"image":"/assets/media/68cdbc9351ad90bbc75e.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"丝瓜络手作家具","year":"2023—2026","description":"以农业废弃材料探索可持续家具语言","tags":["设计项目","2023—2026"],"image":"/assets/media/c82aab902854a79238ac.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"车载智能加热水杯","year":"2023—2026","description":"面向出行场景的便携智能产品设计","tags":["设计项目","2023—2026"],"image":"/assets/media/03239f2cd2f7e8b5151e.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"徐霞客游记可视化地图","year":"2023—2026","description":"将历史文本与旅行轨迹转译为信息可视化","tags":["设计项目","2023—2026"],"image":"/assets/media/251bf6a0e030a34fe0f9.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"设计经历可视化图谱","year":"2023—2026","description":"将个人项目脉络整理为可阅读的成长地图","tags":["设计项目","2023—2026"],"image":"/assets/media/a99479a0f044fddcad33.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"苗绣 AIGC 粒子化","year":"2023—2026","description":"以数字生成方法重构苗绣纹样的视觉表达","tags":["设计项目","2023—2026"],"image":"/assets/media/4deacd9b2c0892725172.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"洞庭观湖","year":"2023—2026","description":"围绕地域文化与自然意象的视觉设计","tags":["设计项目","2023—2026"],"image":"/assets/media/490e7a07e00f642053e0.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"新能源充电桩","year":"2023—2026","description":"面向城市公共出行的能源补给设施概念","tags":["设计项目","2023—2026"],"image":"/assets/media/43136dbad276f4581518.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"可持续吸尘器","year":"2023—2026","description":"从模块维护与生命周期出发的家电设计","tags":["设计项目","2023—2026"],"image":"/assets/media/22bdb7214bcd20977296.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"热塑材料再生","year":"2023—2026","description":"探索热塑材料回收与再制造的产品路径","tags":["设计项目","2023—2026"],"image":"/assets/media/7437b2a4a4787ab76d46.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"科普严肃游戏","year":"2023—2026","description":"通过交互机制让抽象社会议题可感知、可参与","tags":["设计项目","2023—2026"],"image":"/assets/media/581adba753d9a492890f.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"科普手册","year":"2023—2026","description":"将复杂知识转译为易读的信息设计","tags":["设计项目","2023—2026"],"image":"/assets/media/6969e15715e9b2619f71.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"AI 工作台","year":"2023—2026","description":"以智能协作为核心的创意生产工具探索","tags":["设计项目","2023—2026"],"image":"/assets/media/df40006f622a2d8b960b.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"海空联航概念载具","year":"2023—2026","description":"面向未来旅行的跨介质移动体验概念","tags":["设计项目","2023—2026"],"image":"/assets/media/5fa01c0783e7dbc05cfc.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"专辑设计","year":"2023—2026","description":"以视觉节奏组织音乐内容与情绪表达","tags":["设计项目","2023—2026"],"image":"/assets/media/ac73596da932b28ba5fb.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"概念绘制 01","year":"2023—2026","description":"以场景绘制推进未来产品与空间叙事","tags":["设计项目","2023—2026"],"image":"/assets/media/c4d96996614634db7179.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"苏式磁悬浮列车","year":"2023—2026","description":"结合地域语义与未来交通语言的列车设计","tags":["设计项目","2023—2026"],"image":"/assets/media/731bdd66fb0bf21a8f4c.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"街头体育公园列车","year":"2023—2026","description":"将运动、公共空间与轨道交通进行融合","tags":["设计项目","2023—2026"],"image":"/assets/media/db037074ac37a774487a.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"肌康复腰带","year":"2023—2026","description":"面向身体康复场景的穿戴式交互设计","tags":["设计项目","2023—2026"],"image":"/assets/media/deb5efaf925e771b1bfe.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"净山系统","year":"2023—2026","description":"围绕户外环境维护与公共参与的系统设计","tags":["设计项目","2023—2026"],"image":"/assets/media/117cbf6176408199b278.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"健身 VR 系统","year":"2023—2026","description":"以沉浸交互支持运动训练与身体反馈","tags":["设计项目","2023—2026"],"image":"/assets/media/1ecb42df78fe5e4f3dd4.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"概念绘制 02","year":"2023—2026","description":"以情境化视觉验证概念体验与使用场景","tags":["设计项目","2023—2026"],"image":"/assets/media/c1dc3e6f29371107fbf6.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"思辨设计","year":"2023—2026","description":"通过参与式设计讨论城市善意与劳动边界","tags":["设计项目","2023—2026"],"image":"/assets/media/386b35aebb6a024a2b17.webp"},{"category":"设计经历","categoryEn":"DESIGN EXPERIENCE","title":"极地无人列车","year":"2023—2026","description":"面向极地科研场景的未来轨道交通概念","tags":["设计项目","2023—2026"],"image":"/assets/media/db828fa4229d455e29e9.webp"},{"category":"专业实践","categoryEn":"PROFESSIONAL PRACTICE","title":"课程调研与方案讨论","year":"2023—2026","description":"从课堂研究、团队讨论到阶段汇报，将设计方法落实到真实问题。","tags":["专业实践","现场记录"],"image":"/assets/media/0c63ed8ba4dc153d77f3.webp"},{"category":"专业实践","categoryEn":"PROFESSIONAL PRACTICE","title":"课程调研与方案讨论","year":"2023—2026","description":"从课堂研究、团队讨论到阶段汇报，将设计方法落实到真实问题。","tags":["专业实践","现场记录"],"image":"/assets/media/b235d3e7e994c03ca686.webp"},{"category":"专业实践","categoryEn":"PROFESSIONAL PRACTICE","title":"课程调研与方案讨论","year":"2023—2026","description":"从课堂研究、团队讨论到阶段汇报，将设计方法落实到真实问题。","tags":["专业实践","现场记录"],"image":"/assets/media/c9699b6971612cb38715.webp"},{"category":"专业实践","categoryEn":"PROFESSIONAL PRACTICE","title":"金工实习","year":"2023—2026","description":"通过切割、打磨、焊接与成型训练，把结构方案转化为可验证的实体原型。","tags":["专业实践","现场记录"],"image":"/assets/media/df0f710f318899c44369.webp"},{"category":"专业实践","categoryEn":"PROFESSIONAL PRACTICE","title":"金工实习","year":"2023—2026","description":"通过切割、打磨、焊接与成型训练，把结构方案转化为可验证的实体原型。","tags":["专业实践","现场记录"],"image":"/assets/media/d49132a7ed086d99c952.webp"},{"category":"专业实践","categoryEn":"PROFESSIONAL PRACTICE","title":"金工实习","year":"2023—2026","description":"通过切割、打磨、焊接与成型训练，把结构方案转化为可验证的实体原型。","tags":["专业实践","现场记录"],"image":"/assets/media/347e8403e5f361052e92.webp"},{"category":"专业实践","categoryEn":"PROFESSIONAL PRACTICE","title":"展陈与现场交流","year":"2023—2026","description":"在作品展示与现场讲解中验证叙事方式，并根据真实反馈调整表达。","tags":["专业实践","现场记录"],"image":"/assets/media/7d4f06c835b60db3d439.webp"},{"category":"专业实践","categoryEn":"PROFESSIONAL PRACTICE","title":"展陈与现场交流","year":"2023—2026","description":"在作品展示与现场讲解中验证叙事方式，并根据真实反馈调整表达。","tags":["专业实践","现场记录"],"image":"/assets/media/e60db10aac8bc12e75f5.webp"},{"category":"专业实践","categoryEn":"PROFESSIONAL PRACTICE","title":"展陈与现场交流","year":"2023—2026","description":"在作品展示与现场讲解中验证叙事方式，并根据真实反馈调整表达。","tags":["专业实践","现场记录"],"image":"/assets/media/6474552217336b192242.webp"},{"category":"专业实践","categoryEn":"PROFESSIONAL PRACTICE","title":"展陈与现场交流","year":"2023—2026","description":"在作品展示与现场讲解中验证叙事方式，并根据真实反馈调整表达。","tags":["专业实践","现场记录"],"image":"/assets/media/3e52f396804531cdd092.webp"},{"category":"专业实践","categoryEn":"PROFESSIONAL PRACTICE","title":"材料与模型制作","year":"2023—2026","description":"通过材料实验、手工成型和细节打磨，建立对制造过程的直接理解。","tags":["专业实践","现场记录"],"image":"/assets/media/9fa74b765f6401960650.webp"},{"category":"专业实践","categoryEn":"PROFESSIONAL PRACTICE","title":"材料与模型制作","year":"2023—2026","description":"通过材料实验、手工成型和细节打磨，建立对制造过程的直接理解。","tags":["专业实践","现场记录"],"image":"/assets/media/c945ea16d0f8e5e122dd.webp"},{"category":"专业实践","categoryEn":"PROFESSIONAL PRACTICE","title":"材料与模型制作","year":"2023—2026","description":"通过材料实验、手工成型和细节打磨，建立对制造过程的直接理解。","tags":["专业实践","现场记录"],"image":"/assets/media/0347b82e94db3b1c9885.webp"},{"category":"专业实践","categoryEn":"PROFESSIONAL PRACTICE","title":"校企合作项目","year":"2023—2026","description":"在跨角色协作中连接调研、概念、展示与落地，训练完整项目推进能力。","tags":["专业实践","现场记录"],"image":"/assets/media/d82d1c99f9d00eeb80ee.webp"},{"category":"专业实践","categoryEn":"PROFESSIONAL PRACTICE","title":"校企合作项目","year":"2023—2026","description":"在跨角色协作中连接调研、概念、展示与落地，训练完整项目推进能力。","tags":["专业实践","现场记录"],"image":"/assets/media/cb7b91f9671726385749.webp"},{"category":"专业实践","categoryEn":"PROFESSIONAL PRACTICE","title":"校企合作项目","year":"2023—2026","description":"在跨角色协作中连接调研、概念、展示与落地，训练完整项目推进能力。","tags":["专业实践","现场记录"],"image":"/assets/media/dbc2e5a84e77a0f8efcd.webp"},{"category":"社会实践","categoryEn":"SOCIAL & CAMPUS EXPERIENCE","title":"运动会连续参赛","year":"2023—2026","description":"持续参与体育竞赛，在训练与比赛中保持长期投入、协作和韧性。","tags":["社会实践","校园成长"],"image":"/assets/media/2b30c303a422b6916d51.webp"},{"category":"社会实践","categoryEn":"SOCIAL & CAMPUS EXPERIENCE","title":"运动会连续参赛","year":"2023—2026","description":"持续参与体育竞赛，在训练与比赛中保持长期投入、协作和韧性。","tags":["社会实践","校园成长"],"image":"/assets/media/8f63d728ecc2b866130b.webp"},{"category":"社会实践","categoryEn":"SOCIAL & CAMPUS EXPERIENCE","title":"运动会连续参赛","year":"2023—2026","description":"持续参与体育竞赛，在训练与比赛中保持长期投入、协作和韧性。","tags":["社会实践","校园成长"],"image":"/assets/media/5feeabe97afb3725786f.webp"},{"category":"社会实践","categoryEn":"SOCIAL & CAMPUS EXPERIENCE","title":"运动会连续参赛","year":"2023—2026","description":"持续参与体育竞赛，在训练与比赛中保持长期投入、协作和韧性。","tags":["社会实践","校园成长"],"image":"/assets/media/4c92afc62c29a7801cd0.webp"},{"category":"社会实践","categoryEn":"SOCIAL & CAMPUS EXPERIENCE","title":"社会实践与志愿活动","year":"2023—2026","description":"走进真实社区与服务场景，在行动中理解不同群体的需求与关系。","tags":["社会实践","校园成长"],"image":"/assets/media/7aae1e9a402fe0618d29.webp"},{"category":"社会实践","categoryEn":"SOCIAL & CAMPUS EXPERIENCE","title":"社会实践与志愿活动","year":"2023—2026","description":"走进真实社区与服务场景，在行动中理解不同群体的需求与关系。","tags":["社会实践","校园成长"],"image":"/assets/media/ea8a6e66336e0b4ca193.webp"},{"category":"社会实践","categoryEn":"SOCIAL & CAMPUS EXPERIENCE","title":"社会实践与志愿活动","year":"2023—2026","description":"走进真实社区与服务场景，在行动中理解不同群体的需求与关系。","tags":["社会实践","校园成长"],"image":"/assets/media/508ede3fd4233502d496.webp"},{"category":"社会实践","categoryEn":"SOCIAL & CAMPUS EXPERIENCE","title":"社会实践与志愿活动","year":"2023—2026","description":"走进真实社区与服务场景，在行动中理解不同群体的需求与关系。","tags":["社会实践","校园成长"],"image":"/assets/media/2d35d91448ab3e60d959.webp"},{"category":"社会实践","categoryEn":"SOCIAL & CAMPUS EXPERIENCE","title":"代表参加团代会","year":"2023—2026","description":"以学生代表身份参与公共议题讨论，积累组织协同与表达经验。","tags":["社会实践","校园成长"],"image":"/assets/media/d71d039edf8f6101282c.webp"},{"category":"社会实践","categoryEn":"SOCIAL & CAMPUS EXPERIENCE","title":"代表参加团代会","year":"2023—2026","description":"以学生代表身份参与公共议题讨论，积累组织协同与表达经验。","tags":["社会实践","校园成长"],"image":"/assets/media/45158bd6928b96e5f815.webp"},{"category":"社会实践","categoryEn":"SOCIAL & CAMPUS EXPERIENCE","title":"返回中学校宣","year":"2023—2026","description":"回到中学进行分享与交流，把个人成长经验转化为面向学弟学妹的支持。","tags":["社会实践","校园成长"],"image":"/assets/media/05932e9ab55b986b6215.webp"},{"category":"社会实践","categoryEn":"SOCIAL & CAMPUS EXPERIENCE","title":"大型赛事志愿者","year":"2023—2026","description":"参与大型活动与赛事服务，在高密度现场中承担沟通、协调与执行工作。","tags":["社会实践","校园成长"],"image":"/assets/media/5b3d5e30c6076b342506.webp"},{"category":"社会实践","categoryEn":"SOCIAL & CAMPUS EXPERIENCE","title":"大型赛事志愿者","year":"2023—2026","description":"参与大型活动与赛事服务，在高密度现场中承担沟通、协调与执行工作。","tags":["社会实践","校园成长"],"image":"/assets/media/0bc08053daa5e12714ed.webp"},{"category":"社会实践","categoryEn":"SOCIAL & CAMPUS EXPERIENCE","title":"大型赛事志愿者","year":"2023—2026","description":"参与大型活动与赛事服务，在高密度现场中承担沟通、协调与执行工作。","tags":["社会实践","校园成长"],"image":"/assets/media/9e93770dcd04f445e32f.webp"},{"category":"社会实践","categoryEn":"SOCIAL & CAMPUS EXPERIENCE","title":"北京抖音总部实习","year":"2023—2026","description":"进入互联网企业实践环境，理解真实业务中的产品、内容与协作流程。","tags":["社会实践","校园成长"],"image":"/assets/media/f4d4610b276ee6b8215e.webp"},{"category":"社会实践","categoryEn":"SOCIAL & CAMPUS EXPERIENCE","title":"北京抖音总部实习","year":"2023—2026","description":"进入互联网企业实践环境，理解真实业务中的产品、内容与协作流程。","tags":["社会实践","校园成长"],"image":"/assets/media/f2a562836e132d3e3ae6.webp"}];
+
+const discVertShaderSource=`#version 300 es
+uniform mat4 uWorldMatrix;
+uniform mat4 uViewMatrix;
+uniform mat4 uProjectionMatrix;
+uniform vec3 uCameraPosition;
+uniform vec4 uRotationAxisVelocity;
+in vec3 aModelPosition;
+in vec3 aModelNormal;
+in vec2 aModelUvs;
+in mat4 aInstanceMatrix;
+out vec2 vUvs;
+out float vAlpha;
+flat out int vInstanceId;
+#define PI 3.141593
+void main(){
+  vec4 worldPosition=uWorldMatrix*aInstanceMatrix*vec4(aModelPosition,1.);
+  vec3 centerPos=(uWorldMatrix*aInstanceMatrix*vec4(0.,0.,0.,1.)).xyz;
+  float radius=length(centerPos.xyz);
+  if(gl_VertexID>0){
+    vec3 rotationAxis=uRotationAxisVelocity.xyz;
+    float rotationVelocity=min(.15,uRotationAxisVelocity.w*15.);
+    vec3 stretchDir=normalize(cross(centerPos,rotationAxis));
+    vec3 relativeVertexPos=normalize(worldPosition.xyz-centerPos);
+    float strength=dot(stretchDir,relativeVertexPos);
+    float invAbsStrength=min(0.,abs(strength)-1.);
+    strength=rotationVelocity*sign(strength)*abs(invAbsStrength*invAbsStrength*invAbsStrength+1.);
+    worldPosition.xyz+=stretchDir*strength;
+  }
+  worldPosition.xyz=radius*normalize(worldPosition.xyz);
+  gl_Position=uProjectionMatrix*uViewMatrix*worldPosition;
+  vAlpha=smoothstep(.5,1.,normalize(worldPosition.xyz).z)*.9+.1;
+  vUvs=aModelUvs;
+  vInstanceId=gl_InstanceID;
+}`;
+
+const discFragShaderSource=`#version 300 es
+precision highp float;
+uniform sampler2D uTex;
+uniform int uItemCount;
+uniform int uAtlasSize;
+out vec4 outColor;
+in vec2 vUvs;
+in float vAlpha;
+flat in int vInstanceId;
+void main(){
+  int itemIndex=vInstanceId%uItemCount;
+  int cellsPerRow=uAtlasSize;
+  int cellX=itemIndex%cellsPerRow;
+  int cellY=itemIndex/cellsPerRow;
+  vec2 cellSize=vec2(1.0)/vec2(float(cellsPerRow));
+  vec2 cellOffset=vec2(float(cellX),float(cellY))*cellSize;
+  vec2 st=vec2(vUvs.x,1.0-vUvs.y);
+  st=clamp(st,0.0,1.0);
+  st=st*cellSize+cellOffset;
+  outColor=texture(uTex,st);
+  outColor.a*=vAlpha;
+}`;
+
+class Face{constructor(a,b,c){this.a=a;this.b=b;this.c=c}}
+class Vertex{constructor(x,y,z){this.position=vec3.fromValues(x,y,z);this.normal=vec3.create();this.uv=vec2.create()}}
+class Geometry{
+  constructor(){this.vertices=[];this.faces=[]}
+  addVertex(...args){for(let i=0;i<args.length;i+=3)this.vertices.push(new Vertex(args[i],args[i+1],args[i+2]));return this}
+  addFace(...args){for(let i=0;i<args.length;i+=3)this.faces.push(new Face(args[i],args[i+1],args[i+2]));return this}
+  get lastVertex(){return this.vertices[this.vertices.length-1]}
+  subdivide(divisions=1){
+    const cache={};let f=this.faces;
+    for(let div=0;div<divisions;++div){
+      const nf=new Array(f.length*4);
+      f.forEach((face,ndx)=>{
+        const mAB=this.getMidPoint(face.a,face.b,cache),mBC=this.getMidPoint(face.b,face.c,cache),mCA=this.getMidPoint(face.c,face.a,cache),i=ndx*4;
+        nf[i]=new Face(face.a,mAB,mCA);nf[i+1]=new Face(face.b,mBC,mAB);nf[i+2]=new Face(face.c,mCA,mBC);nf[i+3]=new Face(mAB,mBC,mCA)
+      });f=nf
+    }
+    this.faces=f;return this
+  }
+  spherize(radius=1){this.vertices.forEach(v=>{vec3.normalize(v.normal,v.position);vec3.scale(v.position,v.normal,radius)});return this}
+  get data(){return{vertices:new Float32Array(this.vertices.flatMap(v=>Array.from(v.position))),indices:new Uint16Array(this.faces.flatMap(f=>[f.a,f.b,f.c])),uvs:new Float32Array(this.vertices.flatMap(v=>Array.from(v.uv)))}}
+  getMidPoint(a,b,cache){const k=a<b?`k_${b}_${a}`:`k_${a}_${b}`;if(k in cache)return cache[k];const pa=this.vertices[a].position,pb=this.vertices[b].position,ndx=this.vertices.length;cache[k]=ndx;this.addVertex((pa[0]+pb[0])*.5,(pa[1]+pb[1])*.5,(pa[2]+pb[2])*.5);return ndx}
+}
+class IcosahedronGeometry extends Geometry{
+  constructor(){super();const t=Math.sqrt(5)*.5+.5;
+    this.addVertex(-1,t,0,1,t,0,-1,-t,0,1,-t,0,0,-1,t,0,1,t,0,-1,-t,0,1,-t,t,0,-1,t,0,1,-t,0,-1,-t,0,1)
+      .addFace(0,11,5,0,5,1,0,1,7,0,7,10,0,10,11,1,5,9,5,11,4,11,10,2,10,7,6,7,1,8,3,9,4,3,4,2,3,2,6,3,6,8,3,8,9,4,9,5,2,4,11,6,2,10,8,6,7,9,8,1)
+  }
+}
+class DiscGeometry extends Geometry{
+  constructor(steps=56,radius=1){super();steps=Math.max(4,steps);const alpha=2*Math.PI/steps;this.addVertex(0,0,0);this.lastVertex.uv[0]=.5;this.lastVertex.uv[1]=.5;
+    for(let i=0;i<steps;++i){const x=Math.cos(alpha*i),y=Math.sin(alpha*i);this.addVertex(radius*x,radius*y,0);this.lastVertex.uv[0]=x*.5+.5;this.lastVertex.uv[1]=y*.5+.5;if(i>0)this.addFace(0,i,i+1)}this.addFace(0,steps,1)
+  }
+}
+function createShader(gl,type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(gl.getShaderParameter(s,gl.COMPILE_STATUS))return s;console.error(gl.getShaderInfoLog(s));return null}
+function createProgram(gl,sources,attribLocations){const p=gl.createProgram();[gl.VERTEX_SHADER,gl.FRAGMENT_SHADER].forEach((type,i)=>{const s=createShader(gl,type,sources[i]);if(s)gl.attachShader(p,s)});for(const a in attribLocations)gl.bindAttribLocation(p,attribLocations[a],a);gl.linkProgram(p);return p}
+function makeBuffer(gl,data,usage){const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,data,usage);return b}
+function makeVertexArray(gl,pairs,indices){const vao=gl.createVertexArray();gl.bindVertexArray(vao);for(const [b,loc,n] of pairs){gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,n,gl.FLOAT,false,0,0)}const ib=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(indices),gl.STATIC_DRAW);gl.bindVertexArray(null);return vao}
+function resizeCanvasToDisplaySize(canvas){const dpr=Math.min(2,devicePixelRatio||1),w=Math.round(canvas.clientWidth*dpr),h=Math.round(canvas.clientHeight*dpr),need=canvas.width!==w||canvas.height!==h;if(need){canvas.width=w;canvas.height=h}return need}
+
+class ArcballControl{
+  isPointerDown=false;orientation=quat.create();pointerRotation=quat.create();rotationVelocity=0;
+  rotationAxis=vec3.fromValues(1,0,0);snapDirection=vec3.fromValues(0,0,-1);snapTargetDirection=null;
+  EPSILON=.1;IDENTITY_QUAT=quat.create();
+  constructor(canvas,updateCallback){
+    this.canvas=canvas;this.updateCallback=updateCallback||(()=>null);this.pointerPos=vec2.create();this.previousPointerPos=vec2.create();this._rotationVelocity=0;this._combinedQuat=quat.create();
+    canvas.addEventListener('pointerdown',e=>{vec2.set(this.pointerPos,e.clientX,e.clientY);vec2.copy(this.previousPointerPos,this.pointerPos);this.isPointerDown=true;canvas.setPointerCapture(e.pointerId)});
+    const up=()=>this.isPointerDown=false;
+    canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);canvas.addEventListener('pointerleave',up);
+    canvas.addEventListener('pointermove',e=>{if(this.isPointerDown)vec2.set(this.pointerPos,e.clientX,e.clientY)});
+    canvas.style.touchAction='none';
+  }
+  update(deltaTime,targetFrameDuration=16){
+    const timeScale=deltaTime/targetFrameDuration+.00001;let angleFactor=timeScale;let snapRotation=quat.create();
+    if(this.isPointerDown){
+      const INTENSITY=.3*timeScale,ANGLE_AMPLIFICATION=5/timeScale;
+      let mid=vec2.sub(vec2.create(),this.pointerPos,this.previousPointerPos);vec2.scale(mid,mid,INTENSITY);
+      if(vec2.sqrLen(mid)>this.EPSILON){vec2.add(mid,this.previousPointerPos,mid);const p=this.project(mid),q=this.project(this.previousPointerPos),a=vec3.normalize(vec3.create(),p),b=vec3.normalize(vec3.create(),q);vec2.copy(this.previousPointerPos,mid);angleFactor*=ANGLE_AMPLIFICATION;this.quatFromVectors(a,b,this.pointerRotation,angleFactor)}
+      else quat.slerp(this.pointerRotation,this.pointerRotation,this.IDENTITY_QUAT,INTENSITY);
+    }else{
+      const INTENSITY=.1*timeScale;quat.slerp(this.pointerRotation,this.pointerRotation,this.IDENTITY_QUAT,INTENSITY);
+      if(this.snapTargetDirection){const SNAP=.2,a=this.snapTargetDirection,b=this.snapDirection,sqr=vec3.squaredDistance(a,b),distanceFactor=Math.max(.1,1-sqr*10);angleFactor*=SNAP*distanceFactor;this.quatFromVectors(a,b,snapRotation,angleFactor)}
+    }
+    const combined=quat.multiply(quat.create(),snapRotation,this.pointerRotation);this.orientation=quat.multiply(quat.create(),combined,this.orientation);quat.normalize(this.orientation,this.orientation);
+    quat.slerp(this._combinedQuat,this._combinedQuat,combined,.8*timeScale);quat.normalize(this._combinedQuat,this._combinedQuat);
+    const rad=Math.acos(Math.max(-1,Math.min(1,this._combinedQuat[3])))*2,s=Math.sin(rad/2);let rv=0;
+    if(s>.000001){rv=rad/(2*Math.PI);this.rotationAxis[0]=this._combinedQuat[0]/s;this.rotationAxis[1]=this._combinedQuat[1]/s;this.rotationAxis[2]=this._combinedQuat[2]/s}
+    this._rotationVelocity+=(rv-this._rotationVelocity)*(.5*timeScale);this.rotationVelocity=this._rotationVelocity/timeScale;this.updateCallback(deltaTime)
+  }
+  quatFromVectors(a,b,out,angleFactor=1){const axis=vec3.cross(vec3.create(),a,b);vec3.normalize(axis,axis);const d=Math.max(-1,Math.min(1,vec3.dot(a,b))),angle=Math.acos(d)*angleFactor;quat.setAxisAngle(out,axis,angle)}
+  project(pos){const r=2,w=this.canvas.clientWidth,h=this.canvas.clientHeight,s=Math.max(w,h)-1,x=(2*pos[0]-w-1)/s,y=(2*pos[1]-h-1)/s,xy=x*x+y*y,rr=r*r,z=xy<=rr/2?Math.sqrt(rr-xy):rr/Math.sqrt(xy);return vec3.fromValues(-x,y,z)}
+}
+
+class InfiniteGridMenu{
+  TARGET_FRAME_DURATION=1000/60;SPHERE_RADIUS=2;time=0;smoothRotationVelocity=0;scaleFactor=1;movementActive=false;
+  constructor(canvas,items,onActiveItemChange,onMovementChange,scale=1.08){
+    this.canvas=canvas;this.items=items;this.onActiveItemChange=onActiveItemChange;this.onMovementChange=onMovementChange;this.scaleFactor=scale;
+    this.camera={matrix:mat4.create(),near:.1,far:40,fov:Math.PI/4,aspect:1,position:vec3.fromValues(0,0,3*scale),up:vec3.fromValues(0,1,0),matrices:{view:mat4.create(),projection:mat4.create()}};
+    this.init()
+  }
+  init(){
+    this.gl=this.canvas.getContext('webgl2',{antialias:true,alpha:false});
+    const gl=this.gl;if(!gl)throw new Error('WebGL 2 is required.');
+    this.program=createProgram(gl,[discVertShaderSource,discFragShaderSource],{aModelPosition:0,aModelNormal:1,aModelUvs:2,aInstanceMatrix:3});
+    this.loc={
+      aModelPosition:gl.getAttribLocation(this.program,'aModelPosition'),aModelUvs:gl.getAttribLocation(this.program,'aModelUvs'),aInstanceMatrix:gl.getAttribLocation(this.program,'aInstanceMatrix'),
+      uWorldMatrix:gl.getUniformLocation(this.program,'uWorldMatrix'),uViewMatrix:gl.getUniformLocation(this.program,'uViewMatrix'),uProjectionMatrix:gl.getUniformLocation(this.program,'uProjectionMatrix'),
+      uCameraPosition:gl.getUniformLocation(this.program,'uCameraPosition'),uRotationAxisVelocity:gl.getUniformLocation(this.program,'uRotationAxisVelocity'),
+      uTex:gl.getUniformLocation(this.program,'uTex'),uItemCount:gl.getUniformLocation(this.program,'uItemCount'),uAtlasSize:gl.getUniformLocation(this.program,'uAtlasSize')
+    };
+    this.discGeo=new DiscGeometry(56,1);this.discBuffers=this.discGeo.data;
+    this.vao=makeVertexArray(gl,[[makeBuffer(gl,this.discBuffers.vertices,gl.STATIC_DRAW),this.loc.aModelPosition,3],[makeBuffer(gl,this.discBuffers.uvs,gl.STATIC_DRAW),this.loc.aModelUvs,2]],this.discBuffers.indices);
+    this.icoGeo=new IcosahedronGeometry();this.icoGeo.subdivide(1).spherize(this.SPHERE_RADIUS);this.instancePositions=this.icoGeo.vertices.map(v=>v.position);this.count=this.instancePositions.length;
+    this.initInstances();this.worldMatrix=mat4.create();this.initTexture();this.control=new ArcballControl(this.canvas,dt=>this.onControlUpdate(dt));this.updateCameraMatrix();this.resize();requestAnimationFrame(t=>this.run(t))
+  }
+  initInstances(){
+    const gl=this.gl;this.instances={matricesArray:new Float32Array(this.count*16),matrices:[],buffer:gl.createBuffer()};
+    for(let i=0;i<this.count;i++){const a=new Float32Array(this.instances.matricesArray.buffer,i*64,16);a.set(mat4.create());this.instances.matrices.push(a)}
+    gl.bindVertexArray(this.vao);gl.bindBuffer(gl.ARRAY_BUFFER,this.instances.buffer);gl.bufferData(gl.ARRAY_BUFFER,this.instances.matricesArray.byteLength,gl.DYNAMIC_DRAW);
+    for(let j=0;j<4;j++){const loc=this.loc.aInstanceMatrix+j;gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,4,gl.FLOAT,false,64,j*16);gl.vertexAttribDivisor(loc,1)}
+    gl.bindVertexArray(null)
+  }
+  initTexture(){
+    const gl=this.gl;this.tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,this.tex);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    const itemCount=Math.max(1,this.items.length);this.atlasSize=Math.ceil(Math.sqrt(itemCount));const c=document.createElement('canvas'),ctx=c.getContext('2d'),cell=512;c.width=this.atlasSize*cell;c.height=this.atlasSize*cell;
+    Promise.all(this.items.map((item,i)=>new Promise(resolve=>{
+      const img=new Image();
+      img.decoding='async';
+      img.onload=()=>resolve({img,index:i,ok:true,src:item.image});
+      img.onerror=()=>{
+        console.warn('[Experience Atlas] image failed to load:', item.image);
+        resolve({img:null,index:i,ok:false,src:item.image});
+      };
+      // Absolute same-origin path is more robust on Vercel, including clean URLs / nested routes.
+      img.src=item.image.startsWith('/')?item.image:'/'+item.image.replace(/^\.\//,'');
+    }))).then(results=>{
+      results.forEach(({img,index,ok,src})=>{
+        const x=(index%this.atlasSize)*cell,y=Math.floor(index/this.atlasSize)*cell;
+        if(ok && img){
+          ctx.drawImage(img,x,y,cell,cell);
+        }else{
+          // Keep the atlas valid even when one uploaded asset is missing.
+          // This prevents a single 404 from leaving the entire sphere black.
+          const g=ctx.createLinearGradient(x,y,x+cell,y+cell);
+          g.addColorStop(0,'#d9efff');g.addColorStop(1,'#6fc5f5');
+          ctx.fillStyle=g;ctx.fillRect(x,y,cell,cell);
+          ctx.fillStyle='rgba(255,255,255,.9)';
+          ctx.font='600 30px ui-monospace, monospace';
+          ctx.fillText('IMAGE',x+34,y+64);
+          ctx.font='500 18px ui-monospace, monospace';
+          ctx.fillText('ASSET MISSING',x+34,y+96);
+        }
+      });
+      gl.bindTexture(gl.TEXTURE_2D,this.tex);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c);
+      gl.generateMipmap(gl.TEXTURE_2D);
+    })
+  }
+  resize(){const gl=this.gl;if(resizeCanvasToDisplaySize(gl.canvas))gl.viewport(0,0,gl.drawingBufferWidth,gl.drawingBufferHeight);this.updateProjectionMatrix()}
+  run(time=0){const dt=Math.min(32,time-this.time);this.time=time;this.animate(dt);this.render();requestAnimationFrame(t=>this.run(t))}
+  animate(dt){
+    const gl=this.gl;this.control.update(dt,this.TARGET_FRAME_DURATION);
+    const positions=this.instancePositions.map(p=>vec3.transformQuat(vec3.create(),p,this.control.orientation)),scale=.25,SCALE_INTENSITY=.6;
+    positions.forEach((p,ndx)=>{const s=(Math.abs(p[2])/this.SPHERE_RADIUS)*SCALE_INTENSITY+(1-SCALE_INTENSITY),final=s*scale;let m=mat4.create();mat4.multiply(m,m,mat4.fromTranslation(mat4.create(),vec3.negate(vec3.create(),p)));mat4.multiply(m,m,mat4.targetTo(mat4.create(),[0,0,0],p,[0,1,0]));mat4.multiply(m,m,mat4.fromScaling(mat4.create(),[final,final,final]));mat4.multiply(m,m,mat4.fromTranslation(mat4.create(),[0,0,-this.SPHERE_RADIUS]));mat4.copy(this.instances.matrices[ndx],m)});
+    gl.bindBuffer(gl.ARRAY_BUFFER,this.instances.buffer);gl.bufferSubData(gl.ARRAY_BUFFER,0,this.instances.matricesArray);this.smoothRotationVelocity=this.control.rotationVelocity
+  }
+  render(){
+    const gl=this.gl;gl.useProgram(this.program);gl.enable(gl.CULL_FACE);gl.enable(gl.DEPTH_TEST);
+    gl.clearColor(0.925,0.947,0.988,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+    gl.uniformMatrix4fv(this.loc.uWorldMatrix,false,this.worldMatrix);gl.uniformMatrix4fv(this.loc.uViewMatrix,false,this.camera.matrices.view);gl.uniformMatrix4fv(this.loc.uProjectionMatrix,false,this.camera.matrices.projection);
+    gl.uniform3f(this.loc.uCameraPosition,...this.camera.position);gl.uniform4f(this.loc.uRotationAxisVelocity,this.control.rotationAxis[0],this.control.rotationAxis[1],this.control.rotationAxis[2],this.smoothRotationVelocity*1.1);
+    gl.uniform1i(this.loc.uItemCount,this.items.length);gl.uniform1i(this.loc.uAtlasSize,this.atlasSize);gl.uniform1i(this.loc.uTex,0);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.tex);
+    gl.bindVertexArray(this.vao);gl.drawElementsInstanced(gl.TRIANGLES,this.discBuffers.indices.length,gl.UNSIGNED_SHORT,0,this.count)
+  }
+  updateCameraMatrix(){mat4.targetTo(this.camera.matrix,this.camera.position,[0,0,0],this.camera.up);mat4.invert(this.camera.matrices.view,this.camera.matrix)}
+  updateProjectionMatrix(){this.camera.aspect=this.gl.canvas.clientWidth/this.gl.canvas.clientHeight;const height=this.SPHERE_RADIUS*.35,distance=this.camera.position[2];this.camera.fov=this.camera.aspect>1?2*Math.atan(height/distance):2*Math.atan(height/this.camera.aspect/distance);mat4.perspective(this.camera.matrices.projection,this.camera.fov,this.camera.aspect,this.camera.near,this.camera.far)}
+  onControlUpdate(dt){
+    const timeScale=dt/this.TARGET_FRAME_DURATION+.0001;let damping=5/timeScale,cameraTargetZ=3*this.scaleFactor;
+    const isMoving=this.control.isPointerDown||Math.abs(this.smoothRotationVelocity)>.01;
+    if(isMoving!==this.movementActive){this.movementActive=isMoving;this.onMovementChange(isMoving)}
+    if(!this.control.isPointerDown){
+      const nearest=this.findNearestVertexIndex(),itemIndex=nearest%Math.max(1,this.items.length);this.onActiveItemChange(itemIndex);this.control.snapTargetDirection=vec3.normalize(vec3.create(),this.getVertexWorldPosition(nearest))
+    }else{cameraTargetZ+=this.control.rotationVelocity*80+2.5;damping=7/timeScale}
+    this.camera.position[2]+=(cameraTargetZ-this.camera.position[2])/damping;this.updateCameraMatrix()
+  }
+  findNearestVertexIndex(){const n=this.control.snapDirection,inv=quat.conjugate(quat.create(),this.control.orientation),nt=vec3.transformQuat(vec3.create(),n,inv);let max=-1,idx=0;for(let i=0;i<this.instancePositions.length;i++){const d=vec3.dot(nt,this.instancePositions[i]);if(d>max){max=d;idx=i}}return idx}
+  getVertexWorldPosition(index){return vec3.transformQuat(vec3.create(),this.instancePositions[index],this.control.orientation)}
+}
+
+const leftPanel=document.getElementById('leftPanel'),rightPanel=document.getElementById('rightPanel'),actionButton=document.getElementById('actionButton');
+const category=document.getElementById('category'),categoryEn=document.getElementById('categoryEn'),counter=document.getElementById('counter');
+const itemYear=document.getElementById('itemYear'),itemTitle=document.getElementById('itemTitle'),itemDesc=document.getElementById('itemDesc'),tags=document.getElementById('tags');
+
+let current=-1;
+function setActiveItem(index){
+  if(index===current)return;current=index;const item=items[index];
+  category.textContent=item.category;categoryEn.textContent=item.categoryEn;counter.textContent=`${String(index+1).padStart(2,'0')} / ${String(items.length).padStart(2,'0')}`;
+  itemYear.textContent=item.year;itemTitle.textContent=item.title;itemDesc.textContent=item.description;tags.innerHTML=item.tags.map(t=>`<span class="tag">${t}</span>`).join('')
+}
+function setMovement(moving){
+  [leftPanel,rightPanel,actionButton].forEach(el=>{el.classList.toggle('inactive',moving);el.classList.toggle('active',!moving)})
+}
+
+const canvas=document.getElementById('infinite-grid-menu-canvas');
+const menu=new InfiniteGridMenu(canvas,items,setActiveItem,setMovement,1.08);
+addEventListener('resize',()=>menu.resize());
+setActiveItem(0);
+</script>
+</body>
+</html>
