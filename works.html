@@ -1,0 +1,933 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Nebula Gu — Works Archive</title>
+<style>
+:root{
+  --ink:#15171b;
+  --muted:#89909a;
+  --line:#dfe3e8;
+  --paper:#f7f8fa;
+  --blue:#0b4dff;
+  --deep:#061a35;
+  --shell:min(1720px,calc(100vw - 72px));
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  color:var(--ink);
+  background:#fbfbfc;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+.page{
+  min-height:100vh;
+  position:relative;
+  padding-bottom:90px;
+  background:
+    radial-gradient(circle at 76% 14%,rgba(11,77,255,.045),transparent 30%),
+    linear-gradient(180deg,#fff 0%,#fafbfc 100%);
+}
+.nav{
+  width:var(--shell);
+  margin:auto;
+  height:68px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  align-items:center;
+  font:500 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.09em;
+}
+.nav a:nth-child(2),.nav a:nth-child(3){text-align:center}
+.nav a:last-child{text-align:right}
+.hero{
+  width:var(--shell);
+  margin:0 auto;
+  height:255px;
+  position:relative;
+  border-top:1px solid rgba(0,0,0,.035);
+}
+.hero-title{
+  position:absolute;
+  top:26px;
+  left:0;
+  margin:0;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(68px,7vw,132px);
+  font-weight:400;
+  letter-spacing:-.055em;
+  line-height:.9;
+}
+.hero-archive{
+  position:absolute;
+  top:28px;
+  left:50%;
+  margin:0;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(68px,7vw,132px);
+  font-weight:400;
+  letter-spacing:-.055em;
+  line-height:.9;
+  color:#e5e6e8;
+}
+.hero-note{
+  position:absolute;
+  right:0;
+  bottom:38px;
+  max-width:350px;
+  font-size:12px;
+  line-height:1.6;
+  color:#8a9199;
+  letter-spacing:.03em;
+}
+.stack-wrap{
+  width:100%;
+  position:relative;
+  height:930px;
+  isolation:isolate;
+}
+.preview-layer{
+  position:absolute;
+  left:0;
+  right:0;
+  top:0;
+  height:100%;
+  z-index:60;
+  pointer-events:none;
+}
+.poster-set{
+  position:absolute;
+  left:50%;
+  width:min(690px,43vw);
+  height:285px;
+  opacity:0;
+  z-index:61;
+  transform:translateX(-4%) translateY(28px) scale(.98);
+  transition:
+    opacity .42s cubic-bezier(.2,.7,.2,1),
+    transform .55s cubic-bezier(.18,.82,.22,1),
+    top .55s cubic-bezier(.18,.82,.22,1);
+  pointer-events:none;
+}
+.poster-set.pinned{
+  z-index:120;
+  transform:translateX(-4%) translateY(-78px) scale(1.05);
+}
+.poster-set.active{
+  opacity:1;
+  transform:translateX(-4%) translateY(0) scale(1);
+}
+.poster{
+  position:absolute;
+  bottom:0;
+  width:31%;
+  aspect-ratio:.69;
+  object-fit:cover;
+  box-shadow:0 18px 38px rgba(15,28,58,.16);
+  border-radius:2px;
+  background:#fff;
+  will-change:transform;
+  transition:transform .55s cubic-bezier(.18,.82,.22,1),filter .45s ease;
+}
+.poster:nth-child(1){left:2%;transform:rotate(-7deg) translateY(28px)}
+.poster:nth-child(2){left:34.5%;transform:rotate(2.8deg) translateY(4px)}
+.poster:nth-child(3){left:67%;transform:rotate(8deg) translateY(28px)}
+.poster-set.active .poster:nth-child(1){transform:rotate(-8deg) translateY(0)}
+.poster-set.active .poster:nth-child(2){transform:rotate(1.5deg) translateY(-18px)}
+.poster-set.active .poster:nth-child(3){transform:rotate(7deg) translateY(6px)}
+.poster-set.pinned .poster{
+  box-shadow:0 26px 54px rgba(15,28,58,.24);
+}
+.poster-set.pinned .poster:nth-child(1){transform:rotate(-9deg) translateY(-12px)}
+.poster-set.pinned .poster:nth-child(2){transform:rotate(1.5deg) translateY(-42px)}
+.poster-set.pinned .poster:nth-child(3){transform:rotate(8deg) translateY(-6px)}
+
+.folder{
+  --y:0px;
+  --bg:#eef1f5;
+  position:absolute;
+  left:0;
+  width:100%;
+  height:280px;
+  top:var(--y);
+  z-index:10;
+  background:var(--bg);
+  clip-path:polygon(0 0,23% 0,25.6% 16%,100% 16%,100% 100%,0 100%);
+  transition:
+    transform .48s cubic-bezier(.18,.82,.22,1),
+    filter .4s ease,
+    opacity .4s ease,
+    background .4s ease;
+  cursor:pointer;
+  overflow:hidden;
+  border-top:1px solid rgba(255,255,255,.55);
+}
+.folder::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.18),transparent 42%);
+  pointer-events:none;
+}
+.folder-inner{
+  width:var(--shell);
+  height:100%;
+  margin:auto;
+  padding:38px 0 24px;
+  position:relative;
+}
+.folder-no{
+  position:absolute;
+  top:27px;
+  left:0;
+  font:500 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.05em;
+}
+.folder-title{
+  position:absolute;
+  left:0;
+  top:70px;
+  margin:0;
+  font-family:Georgia,"Times New Roman",serif;
+  font-weight:400;
+  font-size:clamp(56px,6vw,104px);
+  line-height:.82;
+  letter-spacing:-.055em;
+  white-space:nowrap;
+}
+.folder-zh{
+  position:absolute;
+  left:50%;
+  top:auto;
+  bottom:30px;
+  font-size:15px;
+  font-weight:500;
+  letter-spacing:.02em;
+  z-index:4;
+}
+.folder-cat{
+  position:absolute;
+  right:0;
+  top:auto;
+  bottom:28px;
+  font:500 10px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.08em;
+  text-align:right;
+  max-width:300px;
+  z-index:4;
+}
+.folder-arrow{
+  position:absolute;
+  right:0;
+  bottom:31px;
+  font-size:22px;
+  font-weight:300;
+  opacity:.45;
+}
+.folder.active{
+  color:white;
+  background:var(--accent);
+  transform:translateY(-12px);
+  filter:drop-shadow(0 -4px 12px rgba(8,34,92,.08));
+}
+.folder.active .folder-arrow{opacity:1}
+.stack-wrap.has-active .folder:not(.active){opacity:.42;filter:saturate(.25)}
+.stack-wrap.has-active .folder:not(.active) .folder-title{color:#b6bbc3}
+.stack-wrap.has-active .folder:not(.active) .folder-zh,
+.stack-wrap.has-active .folder:not(.active) .folder-cat,
+.stack-wrap.has-active .folder:not(.active) .folder-no{color:#a7adb6}
+.index-rail{
+  position:fixed;
+  right:22px;
+  top:50%;
+  transform:translateY(-50%);
+  z-index:40;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+}
+.rail-line{width:1px;height:42px;background:#cfd4db}
+.rail-text{
+  writing-mode:vertical-rl;
+  transform:rotate(180deg);
+  font:600 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.11em;
+  color:#5f6772;
+}
+.footer{
+  width:var(--shell);
+  margin:18px auto 0;
+  display:flex;
+  justify-content:space-between;
+  font:500 10px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.08em;
+  color:#828995;
+}
+@media(max-width:900px){
+  :root{--shell:calc(100vw - 32px)}
+  .hero{height:210px}
+  .hero-archive{left:auto;right:0;opacity:.7}
+  .hero-note{display:none}
+  .stack-wrap{height:820px}
+  .folder{height:235px;clip-path:polygon(0 0,42% 0,48% 15%,100% 15%,100% 100%,0 100%)}
+  .folder-title{font-size:44px;top:72px;white-space:normal}
+  .folder-zh{display:none}
+  .folder-cat{top:auto;bottom:26px;left:0;right:auto;text-align:left}
+  .poster-set{left:22%;width:72vw;height:220px}
+  .index-rail{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *{transition:none!important}
+}
+
+/* ===== PROJECT DETAIL VIEW ===== */
+body.detail-open{overflow:hidden}
+.project-detail{
+  position:fixed;inset:0;z-index:500;display:block;overflow:hidden;
+  background:
+    radial-gradient(circle at 18% 14%,rgba(89,132,255,.16),transparent 28%),
+    radial-gradient(circle at 74% 9%,rgba(255,255,255,.72),transparent 27%),
+    linear-gradient(135deg,#dfe9ff 0%,#edf3ff 38%,#e8effc 72%,#dce7fb 100%);
+  opacity:0;visibility:hidden;pointer-events:none;transform:translateY(16px);
+  transition:opacity .42s cubic-bezier(.2,.75,.2,1),transform .55s cubic-bezier(.18,.82,.22,1),visibility .42s;
+}
+.project-detail.open{opacity:1;visibility:visible;pointer-events:auto;transform:none}
+
+/* Left information floats directly on the same pale-blue canvas. */
+.detail-sidebar{
+  position:absolute;left:38px;top:28px;bottom:28px;width:min(400px,25vw);z-index:30;
+  padding:4px 18px 16px 4px;display:flex;flex-direction:column;
+  background:transparent;border:0;box-shadow:none;backdrop-filter:none;
+  overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;
+}
+.detail-sidebar::-webkit-scrollbar,.detail-scroll::-webkit-scrollbar{display:none;width:0;height:0}
+.detail-sidebar.dark{color:#15201a;background:transparent;border:0;box-shadow:none}
+
+.detail-topbar{
+  display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:42px;
+  font:600 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.09em;
+}
+.detail-back{
+  appearance:none;border:1px solid rgba(11,77,255,.18);background:#0b4dff;color:#fff;
+  padding:13px 18px 13px 15px;border-radius:999px;cursor:pointer;
+  font:700 10.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;
+  box-shadow:0 12px 30px rgba(11,77,255,.22);
+  transition:transform .22s ease,box-shadow .22s ease,background .22s ease;
+}
+.detail-back:hover{transform:translateX(-4px);background:#003ee8;box-shadow:0 16px 38px rgba(11,77,255,.30)}
+.detail-back:active{transform:translateX(-2px) scale(.98)}
+.detail-index{
+  font:700 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;color:#52627c;
+}
+.detail-logo{
+  margin:0 0 18px;font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(49px,3.7vw,72px);font-weight:400;line-height:.88;letter-spacing:-.055em;word-break:break-word;
+}
+.detail-logo.gaze{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#087b49;font-weight:750;
+  font-size:clamp(34px,2.8vw,54px);letter-spacing:-.05em;text-shadow:none;
+}
+.detail-cn{
+  margin:0 0 30px;max-width:330px;font-size:14px;font-weight:560;line-height:1.5;letter-spacing:.01em;color:#46546b;
+}
+.detail-meta{
+  display:grid;grid-template-columns:112px 1fr;gap:0;margin-bottom:30px;border-top:1px solid rgba(74,97,137,.32);
+}
+.dark .detail-meta{border-top-color:rgba(51,111,79,.27)}
+.detail-meta dt,.detail-meta dd{
+  margin:0;padding:10px 0;border-bottom:1px solid rgba(88,111,150,.22);font-size:10.5px;line-height:1.45;
+}
+.dark .detail-meta dt,.dark .detail-meta dd{border-bottom-color:rgba(51,111,79,.18)}
+.detail-meta dt{
+  padding-right:12px;font:650 8px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.07em;color:#74829a;
+}
+.dark .detail-meta dt{color:#4a8063}
+.detail-meta dd{font-weight:590;color:#283549}
+.detail-section-label{
+  margin:9px 0 11px;font:700 8px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.11em;color:#61728c;
+}
+.dark .detail-section-label{color:#3f7657}
+.detail-description{margin:0;max-width:350px;font-size:12px;line-height:1.78;color:#33445d}
+.dark .detail-description{color:#304b3b}
+.detail-description.en{margin-top:14px;font-size:10.8px;line-height:1.72;color:#60708a}
+.dark .detail-description.en{color:#567565}
+.detail-footer{
+  margin-top:auto;padding-top:24px;display:flex;justify-content:space-between;align-items:flex-end;gap:18px;
+  font:650 8px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.07em;color:#76849a;
+}
+
+/* Mouse-wheel scrolling remains; default browser scrollbars are hidden. */
+.detail-scroll{
+  position:absolute;inset:0;height:100vh;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth;
+  scrollbar-width:none;-ms-overflow-style:none;background:transparent;
+  padding:38px clamp(42px,5vw,92px) 110px calc(min(400px,25vw) + 92px);
+}
+.detail-scroll.dark{background:transparent}
+
+/* Right portfolio board is smaller than the full content area to reveal more blue background. */
+.detail-image-wrap{
+  width:100%;min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:16px 0 72px;
+}
+.detail-image{
+  display:block;width:min(100%,1220px);height:auto;object-fit:contain;border-radius:18px;background:#fff;
+  box-shadow:0 34px 90px rgba(48,70,113,.12),0 4px 18px rgba(48,70,113,.06);
+}
+.detail-scroll.dark .detail-image{
+  background:#000;box-shadow:0 36px 92px rgba(31,63,47,.14),0 4px 18px rgba(31,63,47,.06);
+}
+
+/* Clean page: no visible native scrollbar or custom progress bar. */
+.detail-progress{display:none!important}
+.detail-hint{
+  position:absolute;right:clamp(48px,6vw,100px);top:52px;z-index:4;padding:9px 13px;border-radius:999px;
+  background:rgba(240,246,255,.72);border:1px solid rgba(83,111,164,.16);backdrop-filter:blur(10px);
+  font:650 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;color:#5f7090;pointer-events:none;
+}
+.detail-scroll.dark .detail-hint{
+  color:#47745a;background:rgba(233,245,239,.70);border-color:rgba(45,123,77,.14);
+}
+
+.folder[data-openable="true"] .folder-arrow{opacity:1;transform:translateX(0)}
+.folder[data-openable="true"]:hover .folder-arrow{transform:translate(4px,-4px)}
+.folder-arrow{transition:transform .25s ease,opacity .25s ease}
+
+
+.detail-image-wrap{
+  width:100%;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  padding:16px 0 72px;
+}
+
+.detail-image-stack{
+  width:min(100%,1220px);
+  display:flex;
+  flex-direction:column;
+  gap:30px;
+}
+
+.detail-image{
+  display:block;
+  width:100%;
+  height:auto;
+  object-fit:contain;
+  border-radius:18px;
+  background:transparent;
+  box-shadow:
+    0 30px 78px rgba(48,70,113,.10),
+    0 3px 14px rgba(48,70,113,.05);
+}
+
+.detail-scroll.dark .detail-image{
+  background:transparent;
+  box-shadow:
+    0 30px 80px rgba(31,63,47,.12),
+    0 3px 14px rgba(31,63,47,.05);
+}
+
+@media(max-width:1180px){
+  .detail-sidebar{left:24px;width:330px}
+  .detail-scroll{padding-left:390px;padding-right:34px}
+}
+@media(max-width:820px){
+  .project-detail{overflow-y:auto;scrollbar-width:none}
+  .project-detail::-webkit-scrollbar{display:none}
+  .detail-sidebar{
+    position:relative;left:auto;top:auto;bottom:auto;width:calc(100% - 32px);height:auto;max-height:none;
+    margin:16px;padding:6px 8px 18px;
+  }
+  .detail-topbar{margin-bottom:24px}
+  .detail-logo{font-size:52px}
+  .detail-cn{max-width:none;margin-bottom:20px}
+  .detail-meta{grid-template-columns:108px 1fr}
+  .detail-description{max-width:none}
+  .detail-scroll{position:relative;inset:auto;height:auto;overflow:visible;padding:0 16px 44px}
+  .detail-image-wrap{padding-top:0}
+  .detail-image{width:100%;border-radius:14px}
+  .detail-footer{display:none}
+  .detail-hint{display:none}
+}
+
+
+/* Directory preview image crop refinement */
+.poster{
+  object-fit:cover;
+  object-position:center center;
+  background:#fff;
+}
+.poster-set{
+  overflow:visible;
+}
+
+</style>
+
+<style id="nebula-parent-integration">
+:root{--serif:Georgia,"Times New Roman",serif}
+html,body{width:100%;height:100%;overflow:hidden!important;background:transparent!important;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif!important}body>.nav,.page>.nav{display:none!important}
+.page{height:100vh!important;min-height:0!important;padding:54px 0 0!important;overflow:hidden!important;background:rgba(247,251,255,.72)!important}.hero{height:118px!important;width:min(1720px,calc(100vw - 58px))!important}.hero-title,.hero-archive{top:10px!important;font-family:var(--serif)!important;font-size:clamp(46px,5vw,80px)!important}.hero-archive{color:#d9e6f7!important}.hero-note{bottom:14px!important;font-size:8.5px!important;line-height:1.45!important}.stack-wrap{height:calc(100vh - 172px)!important;min-height:0!important}
+.folder{height:166px!important;--tab-left:2%;clip-path:polygon(0 15%,var(--tab-left) 15%,calc(var(--tab-left) + 2.2%) 0,calc(var(--tab-left) + 19%) 0,calc(var(--tab-left) + 21.4%) 15%,100% 15%,100% 100%,0 100%)!important;border-top-color:rgba(255,255,255,.82)!important;background:var(--bg)!important;box-shadow:0 -1px 0 rgba(255,255,255,.65) inset;overflow:hidden!important}.folder::after{background:linear-gradient(180deg,rgba(255,255,255,.38),transparent 46%)!important}.folder::before{content:"";position:absolute;inset:15% 0 0;pointer-events:none;opacity:.24;background:radial-gradient(circle at 18% 24%,rgba(255,255,255,.85) 0 1px,transparent 1.8px) 0 0/18px 18px}.folder[data-pattern="lines"]::before{background:repeating-linear-gradient(112deg,rgba(66,122,205,.10) 0 1px,transparent 1px 13px)}.folder[data-pattern="waves"]::before{background:radial-gradient(ellipse at 50% 120%,transparent 0 38%,rgba(70,137,224,.12) 39% 40%,transparent 41% 49%,rgba(70,137,224,.09) 50% 51%,transparent 52%)}.folder[data-pattern="grid"]::before{background:linear-gradient(rgba(70,126,204,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(70,126,204,.08) 1px,transparent 1px);background-size:26px 26px}.folder-inner{width:min(1720px,calc(100vw - 58px))!important;padding:25px 0 16px!important}.folder-no{top:7px!important;left:calc(var(--tab-left) + 3.8%)!important;font-size:9px!important;color:#214d89!important;z-index:5}.folder-title{top:50px!important;font-family:var(--serif)!important;font-size:clamp(35px,4vw,64px)!important}.folder-zh{bottom:17px!important;font-size:11px!important}.folder-cat{bottom:17px!important;font-size:7.8px!important}.folder-arrow{bottom:17px!important;font-size:18px!important}.folder.active{color:#0b356f!important;background:var(--bg)!important;transform:translateY(-8px)!important;filter:drop-shadow(0 -5px 14px rgba(26,80,172,.10)) brightness(1.015)!important}.stack-wrap.has-active .folder:not(.active){opacity:.82!important;filter:saturate(.90)!important}.stack-wrap.has-active .folder:not(.active) .folder-title{color:#536d91!important}.stack-wrap.has-active .folder:not(.active) .folder-zh,.stack-wrap.has-active .folder:not(.active) .folder-cat,.stack-wrap.has-active .folder:not(.active) .folder-no{color:#617896!important}
+.poster-set{height:176px!important;width:min(505px,35vw)!important}.poster{box-shadow:0 13px 28px rgba(30,65,124,.12)!important}.poster-set.pinned .poster{box-shadow:0 20px 40px rgba(30,65,124,.17)!important}.index-rail,.footer{display:none!important}
+.project-detail{top:0!important;background:linear-gradient(135deg,#edf5ff 0%,#f8fbff 46%,#edf4ff 100%)!important}.detail-sidebar{top:66px!important;bottom:18px!important;width:min(360px,23vw)!important}.detail-scroll{padding-top:72px!important;padding-left:calc(min(360px,23vw) + 76px)!important}.detail-logo{font-family:var(--serif)!important;font-size:clamp(38px,3vw,58px)!important}.detail-cn{font-size:11px!important}.detail-description{font-size:10.5px!important}.detail-image-stack{gap:18px!important;width:min(100%,1080px)!important}.detail-image{border-radius:12px!important}
+@media(max-width:900px){html,body{overflow:auto!important}.page{height:auto!important;min-height:100vh!important;overflow:visible!important}.stack-wrap{height:800px!important}.hero{height:160px!important}.folder{height:210px!important}.poster-set{width:68vw!important;height:200px!important}}
+</style>
+
+<style id="nebula-folder-v4">
+html,body{background:#eef6ff!important}
+.page{background:#eef6ff!important}
+.hero{height:110px!important}
+.hero-title,.hero-archive{font-size:clamp(40px,4.5vw,72px)!important}
+.hero-note{font-size:8px!important}
+.stack-wrap{height:calc(100vh - 164px)!important}
+.folder{
+  height:178px!important;
+  clip-path:polygon(
+    0 18%,
+    var(--tab-left) 18%,
+    var(--tab-left) 0,
+    calc(var(--tab-left) + 17%) 0,
+    calc(var(--tab-left) + 20%) 18%,
+    100% 18%,100% 100%,0 100%
+  )!important;
+  background:var(--bg)!important;
+  opacity:1!important;
+  border:none!important;
+  filter:drop-shadow(0 -6px 12px rgba(42,86,145,.12));
+}
+.folder::after{
+  inset:18% 0 0!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.24),transparent 45%)!important;
+}
+.folder::before{
+  inset:18% 0 0!important;
+  opacity:.34!important;
+}
+.folder-inner{padding:29px 0 14px!important}
+.folder-no{
+  top:8px!important;
+  left:calc(var(--tab-left) + 2.2%)!important;
+  color:#183f76!important;
+  font-size:9px!important;
+  font-weight:700!important;
+}
+.folder-title{
+  top:56px!important;
+  font-size:clamp(28px,3.1vw,52px)!important;
+  line-height:.88!important;
+  color:#17355d!important;
+}
+.folder-zh{bottom:16px!important;font-size:10px!important;color:#24466f!important}
+.folder-cat{bottom:16px!important;font-size:7px!important;color:#506b8e!important}
+.folder-arrow{bottom:14px!important;font-size:17px!important;color:#24466f!important}
+.folder.active{
+  transform:translateY(-7px)!important;
+  filter:drop-shadow(0 -10px 18px rgba(42,86,145,.17)) brightness(1.015)!important;
+  color:#17355d!important;
+}
+.stack-wrap.has-active .folder:not(.active){opacity:1!important;filter:drop-shadow(0 -4px 10px rgba(42,86,145,.08)) saturate(.96)!important}
+.stack-wrap.has-active .folder:not(.active) .folder-title{color:#365778!important}
+.poster-set{height:160px!important;width:min(445px,31vw)!important}
+.poster{border-radius:4px!important}
+@media(max-width:900px){
+  .folder{height:202px!important}
+  .folder-title{font-size:40px!important}
+}
+</style>
+
+
+<style id="nebula-folder-v5">
+/* V5 folder language: clearer tabs, smaller project names, unified aquatic blue spectrum. */
+.folder{height:178px!important;opacity:1!important;border:none!important;overflow:hidden!important}
+.folder-title{top:58px!important;font-size:clamp(22px,2.55vw,44px)!important;line-height:.92!important;letter-spacing:-.045em!important;max-width:58vw;white-space:nowrap!important;color:#113760!important}
+.folder-no{font-size:9px!important;top:8px!important;font-weight:800!important;color:#103d72!important}
+.folder-zh{font-size:9.5px!important;color:#214e7d!important}.folder-cat{font-size:6.8px!important;color:#315d8a!important}
+.folder::after{background:linear-gradient(180deg,rgba(255,255,255,.22),transparent 46%)!important}
+.folder[data-pattern="pure"]::before{display:none!important}
+.folder[data-pattern="dots"]::before{display:block!important;opacity:.38!important;background:radial-gradient(circle,rgba(0,112,214,.26) 0 1.3px,transparent 1.7px) 0 0/13px 13px!important;mask-image:linear-gradient(90deg,transparent 4%,#000 35%,#000 78%,transparent 100%)}
+.folder[data-pattern="grid"]::before{display:block!important;opacity:.28!important;background:linear-gradient(rgba(0,103,197,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(0,103,197,.14) 1px,transparent 1px)!important;background-size:24px 24px!important}
+.folder[data-pattern="waves"]::before{display:block!important;opacity:.35!important;background:repeating-radial-gradient(ellipse at 48% 118%,transparent 0 24px,rgba(255,255,255,.45) 25px 27px,transparent 28px 48px)!important}
+.folder[data-pattern="dither-soft"]::before{display:block!important;opacity:.46!important;background:radial-gradient(circle at 20% 30%,rgba(0,114,214,.34) 0 1.8px,transparent 2.2px) 0 0/15px 15px!important;mask-image:radial-gradient(ellipse at 28% 55%,#000 0 20%,rgba(0,0,0,.7) 38%,transparent 72%)}
+.folder[data-pattern="dither-dense"]::before{display:block!important;opacity:.55!important;background:radial-gradient(circle,rgba(0,91,191,.30) 0 2.1px,transparent 2.5px) 0 0/12px 12px!important;mask-image:linear-gradient(115deg,transparent 4%,#000 28%,rgba(0,0,0,.88) 60%,transparent 94%)}
+.folder.active{filter:drop-shadow(0 -9px 18px rgba(31,92,160,.17)) brightness(1.015)!important}
+.poster-set{height:150px!important;width:min(410px,29vw)!important}
+.poster{box-shadow:0 11px 24px rgba(27,70,124,.13)!important}
+@media(max-width:900px){.folder-title{font-size:34px!important;max-width:80vw}.poster-set{width:62vw!important;height:180px!important}}
+</style>
+
+</head>
+<body>
+<main class="page">
+  <nav class="nav">
+    <a href="#">HOME</a>
+    <a href="#works">WORKS</a>
+    <a href="#about">ABOUT</a>
+    <a href="#contact">CONTACT</a>
+  </nav>
+
+  <section class="hero" id="works">
+    <h1 class="hero-title">Works</h1>
+    <div class="hero-archive">Archive</div>
+    <div class="hero-note">SELECTED PROJECTS / 2023—2026<br>HOVER OR CLICK A FOLDER TO PREVIEW</div>
+  </section>
+
+  <section class="stack-wrap" id="stack">
+    <div class="preview-layer" id="previewLayer"></div>
+  </section>
+
+  <div class="index-rail">
+    <div class="rail-line"></div>
+    <div class="rail-text">KEEP SWIMMING UNTIL THE SEA TURNS BLUE</div>
+    <div class="rail-line"></div>
+  </div>
+
+  <footer class="footer">
+    <span>NEBULA GU / 顾心芸</span>
+    <span>INTERACTION · PRODUCT · AI · CONCEPT</span>
+    <span>SELECTED WORKS 01—07</span>
+  </footer>
+
+  <section class="project-detail" id="projectDetail" data-theme="light" aria-hidden="true">
+    <aside class="detail-sidebar" id="detailSidebar">
+      <div class="detail-topbar">
+        <button class="detail-back" id="detailBack">← BACK TO WORKS</button>
+        <span class="detail-index" id="detailIndex">01 / 07</span>
+      </div>
+
+      <div>
+        <h2 class="detail-logo" id="detailLogo">THE GAZE PROTOCOL</h2>
+        <div class="detail-cn" id="detailCn">凝视协议</div>
+
+        <dl class="detail-meta" id="detailMeta"></dl>
+
+        <div class="detail-section-label">DESIGN STATEMENT / 设计说明</div>
+        <p class="detail-description" id="detailZh"></p>
+        <p class="detail-description en" id="detailEn"></p>
+      </div>
+
+      <div class="detail-footer">
+        <span>NEBULA GU / 顾心芸</span>
+        <span>KEEP SWIMMING<br>UNTIL THE SEA TURNS BLUE</span>
+      </div>
+    </aside>
+
+    <div class="detail-scroll" id="detailScroll">
+      <div class="detail-image-wrap">
+        <div class="detail-image-stack" id="detailImageStack"></div>
+      </div>
+      <div class="detail-hint">SCROLL TO EXPLORE ↓</div>
+    </div>
+
+    <div class="detail-progress" aria-hidden="true"><i id="detailProgressBar"></i></div>
+  </section>
+
+</main>
+
+<script>
+const projects = [{"no": "01", "title": "THE GAZE PROTOCOL", "zh": "凝视协议", "category": "ALGORITHM BIAS · EMBODIED INTERACTION", "accent": "#0B4DFF", "imgs": ["assets/media/works-01-01.webp", "assets/media/works-01-02.webp", "assets/media/works-01-03.webp"]}, {"no": "02", "title": "AI:ON", "zh": "未来智能出行系统", "category": "AI MOBILITY · FUTURE SYSTEM", "accent": "#235DFF", "imgs": ["assets/media/works-02-01.webp", "assets/media/works-02-02.webp", "assets/media/works-02-03.webp"]}, {"no": "03", "title": "SOMABAND", "zh": "产后腹直肌分离居家康复具身交互系统", "category": "HEALTH TECH · EMBODIED REHABILITATION", "accent": "#5B78FF", "imgs": ["assets/media/works-03-01.webp", "assets/media/works-03-02.webp", "assets/media/works-03-03.webp"]}, {"no": "04", "title": "智焕秀纹", "zh": "AI Harness 非遗纹样多 Agent 工作台", "category": "AI CO-CREATION · CULTURAL HERITAGE", "accent": "#173E9E", "imgs": ["assets/media/works-04-01.webp", "assets/media/works-04-02.webp", "assets/media/works-04-03.webp"]}, {"no": "05", "title": "留注", "zh": "参与式思辨设计 · 城市善意与劳动边界", "category": "PARTICIPATORY DESIGN · SOCIAL SPECULATION", "accent": "#4563B3", "imgs": ["assets/media/works-05-01.webp", "assets/media/works-05-02.webp", "assets/media/works-05-03.webp"]}, {"no": "06", "title": "列车设计", "zh": "未来轨道交通与概念出行", "category": "MOBILITY · INDUSTRIAL DESIGN", "accent": "#0B2E72", "imgs": ["assets/media/works-06-01.webp", "assets/media/works-06-02.webp", "assets/media/works-06-03.webp"]}, {"no": "07", "title": "可持续设计", "zh": "材料循环、家庭玄关与森林服务系统", "category": "SUSTAINABILITY · PRODUCT & SERVICE DESIGN", "accent": "#315E92", "imgs": ["assets/media/works-07-01.webp", "assets/media/works-07-02.webp", "assets/media/works-07-03.webp"]}];
+
+const detailProjects = {
+  0: {
+    theme: "dark",
+    index: "01 / 07",
+    title: "THE GAZE\nPROTOCOL",
+    titleClass: "gaze",
+    cn: "凝视协议 · 面向公众算法偏见认知的多模态交互科普严肃游戏",
+    images: ["assets/media/5939ab7b4b0fd736bcec.jpg", "assets/media/dd1a5e4e76ceb346adfe.jpg", "assets/media/9076a7652b7e4daaa5ef.jpg", "assets/media/8fe941179ff43ad4830f.jpg", "assets/media/f8fde76118eab3b74933.jpg", "assets/media/7d241e20084364d1f651.jpg", "assets/media/1551941b30c6f460c803.jpg"],
+    meta: [["TIME / 制作时间", "2026.03 - 2026.05"], ["CONTRIBUTION / 个人贡献", "个人项目 100%"], ["COURSE / 所属课程", "智能交互设计"], ["ADVISOR / 指导老师", "王时惠"], ["OUTPUT / 设计输出", "严肃游戏 / Leap Motion / Unity / 交互装置"]],
+    zh: "The Gaze Protocol 是一款基于手势交互的算法偏见科普严肃游戏，也是一项关于“人在推荐系统中如何保持主体性”的交互设计探索。项目将用户画像、过滤气泡、反馈循环和信息隐藏等抽象机制转化为三色算法文件夹、信息流与手势干预机制，使算法偏见不再停留在概念解释中，而成为一段可以被看见、感知、操作和反思的体验。",
+    en: "The Gaze Protocol is a gesture-based serious game exploring how people can maintain agency within recommendation systems. Abstract mechanisms such as profiling, filter bubbles, feedback loops, and hidden information are translated into tangible folders, feeds, and gesture-based interventions, turning algorithmic bias from an explanation into an experience that can be seen, felt, manipulated, and reflected upon."
+  },
+  1: {
+    theme: "light",
+    index: "02 / 07",
+    title: "AI:ON",
+    titleClass: "",
+    cn: "AI 赋能的天空栖居与地球探索立体出行系统设计",
+    images: ["assets/media/763521334222eafb80ab.jpg", "assets/media/5b55197e04774b3a4dee.jpg", "assets/media/4729074df262b7f743ec.jpg", "assets/media/a6c37d9c8079151b225a.jpg", "assets/media/d1bebc43d223209b1332.jpg"],
+    meta: [["TIME / 制作时间", "2025.12 - 2026.02"], ["CONTRIBUTION / 个人贡献", "双人项目 50%"], ["COURSE / 项目语境", "智慧出行设计创新探索 / 校企合作"], ["ADVISOR / 指导", "OnePen / GAC Design"], ["OUTPUT / 设计输出", "前瞻概念设计 / 智慧出行设计 / 高质模型"]],
+    zh: "AI:ON 是面向未来天空生活时代构想的一次出行想象。在云端漂浮的 Floreon 之上，日常与自然交织；沿着地貌延伸的 SkySpine，则连接天空与地球深处。项目从未来趋势、设计定位与核心概念出发，进一步完成系统推演、人机工学、载具系统架构、空间交互与服务系统设计，并最终以高质量实体模型与场景展示形成完整的未来出行叙事。",
+    en: "AI:ON is a future mobility concept for an era of sky living. Floating Floreon habitats and the terrain-following SkySpine connect daily life, nature, and AI-assisted mobility. The project develops from trend research and concept positioning into system deduction, ergonomics, mobility architecture, spatial interaction, service-system design, and a high-quality physical model."
+  },
+  2: {
+    theme: "light",
+    index: "03 / 07",
+    title: "SOMABAND",
+    titleClass: "",
+    cn: "产后腹直肌分离居家康复具身交互系统",
+    images: ["assets/media/b7176f4250643c83ad54.jpg", "assets/media/3030a49df5b95983cf25.jpg", "assets/media/1e2079323a89b591d35b.jpg", "assets/media/576b1d5e4ff0a24b04af.jpg"],
+    meta: [["TIME / 制作时间", "2025.12 - 2026.01"], ["CONTRIBUTION / 个人贡献", "个人项目 100%"], ["COURSE / 所属课程", "健康设计"], ["ADVISOR / 指导老师", "齐煜"], ["OUTPUT / 设计输出", "具身交互系统 / 产品原型 / 用户测试"]],
+    zh: "SomaBand 是一款专为产后腹直肌分离设计的智能居家康复腰带。项目通过创新的气动触觉反馈系统模拟专业康复师的“手法引导”，在日常活动或训练中实时、轻柔地纠正错误发力，将抽象的“收紧核心”转化为身体能够感知和理解的语言。设计结合无感佩戴、去医疗化交互、呼吸可视化与家庭协作支持，让科学康复更自然地融入产后女性的日常生活。",
+    en: "SomaBand is a smart home-rehabilitation belt designed for postpartum diastasis recti. Pneumatic haptic feedback simulates the manual guidance of a therapist, translating abstract core-engagement cues into bodily sensations that users can feel and understand. Ergonomic wearability, de-medicalized interaction, respiration visualization, and family support integrate rehabilitation into everyday postpartum life."
+  },
+  3: {
+    theme: "light",
+    index: "04 / 07",
+    title: "智焕秀纹",
+    titleClass: "",
+    cn: "基于 Agent Harness 架构的非遗纹样共创工作台",
+    images: ["assets/media/7df14d776b8154212ff6.jpg", "assets/media/0c21019a0316458d4dd8.jpg"],
+    meta: [["TIME / 制作时间", "2026.06 - 2026.07"], ["CONTRIBUTION / 个人贡献", "三人项目转个人项目 82%"], ["COURSE / 所属课程", "产品形态设计"], ["ADVISOR / 指导老师", "周瑾"], ["OUTPUT / 设计输出", "AI Harness / 多 Agent 工作台 / LoRA 纹样训练"]],
+    zh: "项目以苗绣植物纹样为基础，以“AI 电子绷架”为核心界面隐喻，将传统绣作中的选样、配线、走针、拆改与评花过程转化为数字化协作流程。不同 Agent 分别承担需求理解、纹样生成、工艺校验与文化说明等任务，项目旨在解决非遗传承过程中需求表达模糊、工艺转译困难与文化说明缺失的问题，使 AI 成为连接消费者、设计师与非遗工坊的协作媒介。",
+    en: "Based on Miao embroidery plant patterns, the project uses an AI electronic embroidery frame as its core interface metaphor. Multiple agents handle requirement interpretation, pattern generation, craft verification, and cultural explanation, transforming traditional embroidery processes into a traceable collaborative workflow that connects consumers, designers, and heritage workshops."
+  },
+
+  4: {
+    theme: "dark",
+    index: "05 / 07",
+    title: "留注",
+    titleClass: "",
+    cn: "参与式思辨设计 · 在城市善意与劳动边界之间建立低负担的公共表达",
+    images: ["assets/media/project-05-detail-01.webp", "assets/media/project-05-detail-02.webp", "assets/media/project-05-detail-03.webp"],
+    meta: [
+      ["TIME / 制作时间", "2026"],
+      ["CONTRIBUTION / 个人贡献", "三人项目 · 44%"],
+      ["TYPE / 项目类型", "参与式思辨设计 / 社会议题"],
+      ["OUTPUT / 设计输出", "交互网页 / 小票打印 / 现场展陈"],
+      ["SYSTEM / 系统触点", "身份选择 / 表单 / 双联小票 / 票仓 / 骑手回声"]
+    ],
+    zh: "《留注》围绕外卖备注、城市善意与劳动边界展开。项目以一张可撕双联小票作为核心媒介，将“给自己的情绪安慰”与“给骑手的善意表达”分开但保持关联，并通过填写、打印、撕取、投入与抽取回声等低门槛动作组织参与，让被隐藏的情绪和劳动关系获得可见、可讨论的公共表达。",
+    en: "Liu Zhu is a participatory speculative design project exploring delivery notes, urban kindness, and labor boundaries. A tear-off dual receipt separates self-comfort from messages of goodwill to riders while keeping the two connected. Through writing, printing, tearing, depositing, and retrieving responses, the project turns otherwise hidden emotions and labor relations into a low-barrier public conversation."
+  },
+  5: {
+    theme: "light",
+    index: "06 / 07",
+    title: "列车设计",
+    titleClass: "",
+    cn: "未来轨道交通与概念移动设计合集",
+    images: ["assets/media/00a49d564448ea7989fe.jpg", "assets/media/0d5d03cb4b7ffb82a0e8.jpg", "assets/media/a979759fe26df9b15b77.jpg"],
+    meta: [["TIME / 制作时间", "待补充"], ["CONTRIBUTION / 个人贡献", "待补充"], ["COURSE / 所属课程", "待补充"], ["ADVISOR / 指导老师", "待补充"], ["PROJECTS / 包含项目", "VIVA LOOP / WU AXIS / HALO-LINE"]],
+    zh: "这一组轨道交通概念设计从三种不同的未来移动场景出发：VIVA LOOP 将城市公共交通与街头运动文化结合，探索更开放、年轻的共享车厢；WU AXIS 以苏州地域文化和未来磁悬浮为线索，构建具有东方空间气质的高速移动体验；HALO-LINE 则面向极地与冰原环境，探索在极端自然条件下的高速轨道载具形态与感知系统。",
+    en: "This mobility collection explores three future rail scenarios. VIVA LOOP combines urban transit with street-sports culture, WU AXIS interprets Suzhou's regional identity through a future maglev experience, and HALO-LINE investigates high-speed rail mobility and sensing systems for polar and ice-field environments."
+  },
+  6: {
+    theme: "light",
+    index: "07 / 07",
+    title: "可持续设计",
+    titleClass: "",
+    cn: "材料循环、家庭玄关与森林服务系统设计合集",
+    images: ["assets/media/2c2ab527037bd08ce901.jpg", "assets/media/b0e062558d00749a9a99.jpg", "assets/media/9d755e40f3f94f0c43b2.jpg"],
+    meta: [
+      ["TIME / 制作时间", "待补充"],
+      ["CONTRIBUTION / 个人贡献", "待补充"],
+      ["COURSE / 所属课程", "待补充"],
+      ["ADVISOR / 指导老师", "待补充"],
+      ["PROJECTS / 包含项目", "LUFANEST / 再生塑料模块玄关 / Forest Service"]
+    ],
+    zh: "这一组可持续设计项目围绕“材料循环—家庭空间—公共服务”三个尺度展开。LUFANEST 从天然与再生材料出发，探索家具产品的材料质感、结构语言与生命周期；再生热塑颗粒模块化玄关系统将回收塑料转化为可拆装、可维护、可扩展的家庭收纳组件；森林服务系统则从户外劳动与生态维护场景切入，以服务设施、工具系统与数字交互共同构建更具可持续性的自然环境支持体系。",
+    en: "This sustainable design collection spans three scales: material circulation, domestic space, and public service. LUFANEST explores furniture through natural and recycled materials, modular entrance furniture reuses thermoplastic waste in adaptable household storage, and the forest-service system combines physical facilities, tools, and digital interaction to support more sustainable outdoor and ecological maintenance."
+  }
+};
+
+
+const stack = document.getElementById('stack');
+const previewLayer = document.getElementById('previewLayer');
+
+const folderColors = ["#ebfaff","#d0edff","#ade5fe","#7ad6fb","#44bcf9","#2499f8","#157cf5"];
+
+let activeIndex = 0;
+let lockedIndex = null;
+const folders = [];
+const previews = [];
+
+function folderTop(i){
+  return 10 + i * 66;
+}
+
+projects.forEach((p,i)=>{
+  const preview = document.createElement('div');
+  preview.className = 'poster-set';
+  preview.style.top = (folderTop(i) - 126) + 'px';
+  preview.innerHTML = p.imgs.map((src,j)=>`<img class="poster" src="${src}" alt="${p.title} poster ${j+1}">`).join('');
+  previewLayer.appendChild(preview);
+  previews.push(preview);
+
+  const folder = document.createElement('article');
+  folder.className = 'folder';
+  folder.style.setProperty('--y', folderTop(i)+'px');
+  folder.style.setProperty('--bg', folderColors[i]);
+  folder.style.setProperty('--accent', p.accent);
+  folder.style.setProperty('--tab-left', ['0%','47%','8%','35%','19%','57%','30%'][i]);
+  folder.dataset.pattern = ['pure','dither-soft','pure','waves','dots','dither-dense','grid'][i];
+  folder.innerHTML = `
+    <div class="folder-inner">
+      <div class="folder-no">${p.no}</div>
+      <h2 class="folder-title">${p.title}</h2>
+      <div class="folder-zh">${p.zh}</div>
+      <div class="folder-cat">${p.category}</div>
+      <div class="folder-arrow">↗</div>
+    </div>
+  `;
+
+  folder.addEventListener('mouseenter',()=> activate(i,false));
+  if([0,1,2,3,4,5,6].includes(i)) folder.dataset.openable = "true";
+
+  folder.addEventListener('click',()=>{
+    if(detailProjects[i]){
+      openProjectDetail(i);
+      return;
+    }
+    lockedIndex = lockedIndex === i ? null : i;
+    activate(i,true);
+  });
+
+  stack.appendChild(folder);
+  folders.push(folder);
+});
+
+stack.addEventListener('mouseleave',()=>{
+  activate(lockedIndex ?? 0,false);
+});
+
+function activate(index,fromClick){
+  activeIndex=index;
+  stack.classList.add('has-active');
+
+  folders.forEach((f,i)=>{
+    const isActive = i===index;
+    f.classList.toggle('active',isActive);
+    // All folders stay below the clicked poster preview.
+    f.style.zIndex = isActive ? 30 : (12+i);
+  });
+
+  previews.forEach((p,i)=>{
+    const isActive = i===index;
+    p.classList.toggle('active',isActive);
+
+    // Clicked project: float the three posters to the absolute front.
+    // Hover-only preview remains lighter and closer to the corresponding folder.
+    const isPinned = isActive && lockedIndex === index;
+    p.classList.toggle('pinned',isPinned);
+
+    if(isPinned){
+      // Keep the posters visually above the selected row, while staying inside the stack.
+      const pinnedTop = Math.max(12, folderTop(index) - 150);
+      p.style.top = pinnedTop + 'px';
+    }else{
+      p.style.top = (folderTop(i) - 126) + 'px';
+    }
+  });
+}
+
+
+const detail = document.getElementById('projectDetail');
+const detailSidebar = document.getElementById('detailSidebar');
+const detailScroll = document.getElementById('detailScroll');
+const detailBack = document.getElementById('detailBack');
+const detailIndex = document.getElementById('detailIndex');
+const detailLogo = document.getElementById('detailLogo');
+const detailCn = document.getElementById('detailCn');
+const detailMeta = document.getElementById('detailMeta');
+const detailZh = document.getElementById('detailZh');
+const detailEn = document.getElementById('detailEn');
+const detailImageStack = document.getElementById('detailImageStack');
+const detailProgressBar = document.getElementById('detailProgressBar');
+
+function openProjectDetail(index){
+  const p = detailProjects[index];
+  if(!p) return;
+
+  detail.dataset.theme = p.theme;
+  detailSidebar.classList.toggle('dark', p.theme === 'dark');
+  detailScroll.classList.toggle('dark', p.theme === 'dark');
+
+  detailIndex.textContent = p.index;
+  detailLogo.textContent = p.title;
+  detailLogo.className = 'detail-logo' + (p.titleClass ? ' ' + p.titleClass : '');
+  detailCn.textContent = p.cn;
+  detailZh.textContent = p.zh;
+  detailEn.textContent = p.en;
+  detailImageStack.innerHTML = p.images.map((src, idx) => `
+    <img class="detail-image" src="${src}" alt="${p.cn} project portfolio section ${idx + 1}">
+  `).join('');
+
+  detailMeta.innerHTML = p.meta.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('');
+
+  detailScroll.scrollTop = 0;
+  detailProgressBar.style.height = '0%';
+
+  document.body.classList.add('detail-open');
+  detail.classList.add('open');
+  detail.setAttribute('aria-hidden','false');
+}
+
+function closeProjectDetail(){
+  detail.classList.remove('open');
+  detail.setAttribute('aria-hidden','true');
+  document.body.classList.remove('detail-open');
+}
+
+detailBack.addEventListener('click', closeProjectDetail);
+
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && detail.classList.contains('open')){
+    closeProjectDetail();
+  }
+});
+
+detailScroll.addEventListener('scroll', ()=>{
+  const max = detailScroll.scrollHeight - detailScroll.clientHeight;
+  const progress = max > 0 ? (detailScroll.scrollTop / max) * 100 : 0;
+  detailProgressBar.style.height = progress + '%';
+});
+
+activate(0,false);
+
+// Subtle poster parallax, only on the active preview.
+window.addEventListener('pointermove',(e)=>{
+  const set = previews[activeIndex];
+  if(!set) return;
+  const rx = (e.clientX / innerWidth - .5);
+  const ry = (e.clientY / innerHeight - .5);
+  const imgs = set.querySelectorAll('.poster');
+  imgs.forEach((img,j)=>{
+    const baseRot = [-8,1.5,7][j];
+    const dx = rx * (8 + j*3);
+    const dy = ry * (5 + j*2);
+    const pinned = set.classList.contains('pinned');
+    const lift = pinned ? [-12,-42,-6][j] : [0,-18,6][j];
+    img.style.transform = `translate(${dx}px,${dy + lift}px) rotate(${baseRot + rx*1.8}deg)`;
+  });
+});
+</script>
+
+<script>
+(()=>{
+  const KEY='works';
+  const send=(hash)=>parent.postMessage({type:'nebula:navigate',hash},'*');
+  document.addEventListener('click',e=>{
+    const a=e.target.closest&&e.target.closest('a'); if(!a)return;
+    const text=(a.textContent||'').trim().toUpperCase();
+    const href=(a.getAttribute('href')||'').trim();
+    let hash='';
+    if(text==='HOME')hash='#home';
+    else if(text==='WORK'||text==='WORKS'||href==='#works')hash='#works';
+    else if(text==='ABOUT'||href==='#about')hash='#about';
+    else if(text==='ARCHIVE')hash='#experience';
+    else if(text==='CONTACT'||href==='#contact')hash='#contact';
+    if(hash){e.preventDefault();send(hash);}
+  },true);
+  addEventListener('load',()=>parent.postMessage({type:'nebula:frame-ready',key:KEY},'*'));
+})();
+</script>
+
+<script>
+document.addEventListener('error', function(e){
+  const img = e.target;
+  if(img && img.tagName === 'IMG' && !img.dataset.fallbackApplied){
+    img.dataset.fallbackApplied = '1';
+    img.style.background = 'linear-gradient(135deg,#eaf6ff,#cfeaff)';
+    img.style.minHeight = img.classList.contains('detail-image') ? '320px' : '180px';
+    img.style.objectFit = 'contain';
+    img.removeAttribute('src');
+  }
+}, true);
+</script>
+
+</body>
+</html>
