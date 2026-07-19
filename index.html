@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="description" content="顾心芸 Nebula Gu — Interaction, Product, AI and Concept Design Portfolio" />
+<title>顾心芸 · NEBULA GU — Portfolio</title>
+<style>
+:root{--blue:#0b4dff;--blue2:#3f73ff;--ink:#121722;--muted:#708097;--paper:#f8faff;--serif:Georgia,"Times New Roman",serif;--sans:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;background:var(--paper);scroll-snap-type:y proximity}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+
+/* Fixed unified navigation */
+.site-nav{position:fixed;z-index:3000;left:24px;right:24px;top:16px;height:52px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;border:1px solid rgba(93,122,169,.16);border-radius:999px;background:rgba(249,252,255,.76);backdrop-filter:blur(20px) saturate(1.15);-webkit-backdrop-filter:blur(20px) saturate(1.15);box-shadow:0 10px 34px rgba(15,45,96,.07)}
+.site-brand{display:flex;align-items:center;height:36px}.site-brand img{display:block;width:112px;height:auto;filter:brightness(0);opacity:.84}
+.site-links{display:flex;align-items:center;gap:28px;font:600 10px/1 var(--serif);letter-spacing:.12em;color:#334a6d}.site-links a{position:relative;padding:18px 0;transition:color .22s ease,transform .22s ease}.site-links a:hover,.site-links a.active{color:var(--blue);transform:translateY(-1px)}.site-links a.active::after{content:"";position:absolute;left:0;right:0;bottom:9px;height:1px;background:var(--blue)}
+
+/* Major sections: exact 16:9 desktop rhythm */
+.portfolio-section{position:relative;width:100%;aspect-ratio:16/9;height:auto;min-height:0;overflow:hidden;scroll-snap-align:start;border-top:1px solid rgba(24,57,105,.045)}#contact{aspect-ratio:auto;height:clamp(390px,37vw,540px);min-height:390px}
+.frame-shell{background:linear-gradient(180deg,#fbfdff,#f4f8ff)}
+.frame-shell iframe{position:relative;z-index:2;display:block;width:100%;height:100%;border:0;background:transparent}
+.frame-loader{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(180deg,#fbfdff,#f3f7ff);z-index:4;transition:opacity .35s ease,visibility .35s ease}
+.frame-shell.loaded .frame-loader{opacity:0;visibility:hidden;pointer-events:none}
+.frame-loader-inner{font:600 10px/1.7 var(--sans);letter-spacing:.13em;color:#637794;text-align:center}.loading-line{width:120px;height:1px;background:#dce5f1;margin:11px auto 0;overflow:hidden}.loading-line i{display:block;width:40%;height:100%;background:var(--blue);animation:loadline 1.05s ease-in-out infinite alternate}@keyframes loadline{from{transform:translateX(-80%)}to{transform:translateX(230%)}}
+
+/* Exact high-resolution caustic shader from case-study; no extra particle canvas */
+.water-page{background:#00192e;color:#fff;isolation:isolate}
+.water-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:1;cursor:crosshair}.particle-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;opacity:.58}
+.water-page::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(120deg,rgba(0,123,247,.30),rgba(20,145,255,.15) 50%,rgba(0,91,202,.28));mix-blend-mode:screen;pointer-events:none}
+.hero-brand{position:absolute;z-index:4;left:4.8%;top:10%;width:clamp(150px,14vw,245px);pointer-events:none}.hero-brand img{display:block;width:100%;height:auto;filter:drop-shadow(0 5px 18px rgba(0,24,65,.16))}.hero-portfolio-bg{position:absolute;z-index:1;right:-1%;top:17%;width:min(72vw,1380px);opacity:.16;pointer-events:none;mix-blend-mode:screen}.hero-portfolio-bg img{display:block;width:100%;height:auto}
+.hero-title-art{position:absolute;z-index:4;left:4.8%;top:51%;transform:translateY(-42%);width:min(58vw,1100px);pointer-events:none}.hero-title-art img{display:block;width:100%;height:auto;filter:contrast(1.05) saturate(1.02) drop-shadow(0 8px 24px rgba(0,40,100,.15))}
+.hero-meta{position:absolute;z-index:4;left:4.8%;bottom:8%;font-family:var(--serif);color:rgba(240,250,255,.96)}.hero-meta b{display:block;font-size:13px;font-weight:500;letter-spacing:.08em;margin-bottom:14px}.hero-meta span{font-size:15px;letter-spacing:.015em}.hero-dive{position:absolute;z-index:4;right:4.8%;bottom:8%;font:500 11px/1 var(--serif);letter-spacing:.08em;color:#e8f7ff;padding:12px 0}
+
+/* Subtle case-study water texture behind the light project directory */
+.section-water{position:absolute;inset:0;z-index:0;width:100%;height:100%;opacity:.13;pointer-events:none}
+#works::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(247,251,255,.74),rgba(238,245,255,.78));pointer-events:none}
+.portfolio-stamp{position:absolute;z-index:5;right:2.5%;top:10%;width:min(28vw,430px);opacity:.13;pointer-events:none;mix-blend-mode:multiply}.portfolio-stamp img{display:block;width:100%;height:auto}
+
+/* Contact repeats the same interactive water language */
+.contact-copy{position:absolute;z-index:3;left:5%;top:50%;transform:translateY(-48%);max-width:min(1050px,88vw)}.contact-copy .eyebrow{font:650 10px/1.4 var(--sans);letter-spacing:.15em;margin:0 0 20px;color:#d9f2ff}.contact-copy h2{font:400 clamp(48px,6.2vw,104px)/.82 var(--serif);letter-spacing:-.055em;margin:0 0 18px;color:#fff}.contact-copy p{font:400 15px/1.55 var(--serif);color:#d7efff;margin:0 0 18px}.contact-grid{display:flex;flex-wrap:wrap;gap:12px 28px;font:500 13px/1.5 var(--serif)}.contact-grid a,.contact-grid span{display:inline-block;border-bottom:1px solid rgba(255,255,255,.55);padding-bottom:4px}.contact-foot{position:absolute;z-index:3;left:5%;right:5%;bottom:5%;display:flex;justify-content:space-between;font:600 9px/1.4 var(--sans);letter-spacing:.11em;color:#d8efff}
+
+@media(max-width:900px){
+  html{scroll-snap-type:none}.site-nav{left:10px;right:10px;top:10px;height:48px;padding:0 14px}.site-brand{font-size:10px}.site-links{gap:12px;font-size:8px;letter-spacing:.08em}.site-links a:nth-child(4){display:none}
+  .portfolio-section{aspect-ratio:auto;height:100svh;min-height:680px}
+  .hero-brand{top:12%;left:22px;width:145px}.hero-portfolio-bg{width:105vw;right:-28%;top:24%;opacity:.12}.hero-title-art{left:22px;top:49%;width:calc(100vw - 90px)}.hero-meta{left:22px;bottom:9%}.hero-dive{right:22px;bottom:5%}
+  .portfolio-stamp{width:46vw;top:12%;right:-4%;opacity:.10}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.loading-line i{animation:none}}
+</style>
+
+<style id="nebula-outer-v4">
+#contact{height:62vh!important;min-height:500px!important;aspect-ratio:auto!important;scroll-snap-align:start}
+#contact .contact-copy{top:49%;max-width:min(980px,88vw)}
+#contact .contact-copy h2{font-family:Georgia,"Times New Roman","Noto Serif SC",serif!important;font-size:clamp(48px,5.8vw,92px)!important;line-height:.92!important;letter-spacing:-.045em!important;margin-bottom:12px!important}
+#contact .contact-en{font:600 9px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace!important;letter-spacing:.14em!important;color:#bfe7ff!important;margin:0 0 12px!important}
+#contact .contact-copy>p:not(.eyebrow):not(.contact-en){font-size:13px!important;margin-bottom:16px!important}
+#contact .contact-grid{font-size:11.5px!important}
+@media(max-width:900px){#contact{height:72vh!important;min-height:520px!important}}
+</style>
+
+
+<style id="nebula-main-v5">
+#heroParticles{opacity:.52!important}
+@media(min-width:1001px){#about iframe,#works iframe,#experience iframe{height:100%!important}}
+</style>
+
+
+<meta name="theme-color" content="#071a35">
+<meta name="robots" content="index,follow">
+</head>
+<body>
+
+<nav class="site-nav" aria-label="Primary navigation">
+  <a class="site-brand" href="#home"><img src="assets/media/c6a2484408c13fb4556f.webp" alt="Nebula Orbit Design Studio"></a>
+  <div class="site-links">
+    <a href="#home">HOME</a><a href="#works">WORK</a><a href="#about">ABOUT</a><a href="#experience">ARCHIVE</a><a href="#contact">CONTACT</a>
+  </div>
+</nav>
+
+<section id="home" class="water-page portfolio-section" aria-label="Portfolio home">
+  <canvas class="water-canvas" data-water aria-label="点击水面产生涟漪"></canvas>
+  <canvas class="particle-canvas" id="heroParticles" aria-hidden="true"></canvas>
+  <div class="hero-portfolio-bg"><img src="assets/media/ee1a51513cbac5b9ab59.webp" alt=""></div>
+  <div class="hero-brand"><img src="assets/media/c6a2484408c13fb4556f.webp" alt="Nebula Orbit Design Studio"></div>
+  <div class="hero-title-art"><img src="assets/media/366127dbfba663aab1ed.webp" alt="一直游到海水变蓝"></div>
+  <div class="hero-meta"><b>KEEP SWIMMING UNTIL THE SEA TURNS BLUE</b><span>Interaction · Product · AI · Concept Design</span></div>
+  <a class="hero-dive" href="#about">点击水面 · SCROLL TO DIVE ↓</a>
+</section>
+
+<section id="about" class="frame-shell portfolio-section" aria-label="About Nebula Gu">
+  <div class="frame-loader"><div class="frame-loader-inner">ABOUT / INTERACTIVE PROFILE<div class="loading-line"><i></i></div></div></div>
+  <iframe id="aboutFrame" title="Nebula Gu interactive about page" src="about.html" loading="eager"></iframe>
+</section>
+
+<section id="works" class="frame-shell portfolio-section" aria-label="Selected works">
+  <canvas class="section-water" data-water-subtle aria-hidden="true"></canvas>
+  <div class="portfolio-stamp"><img src="assets/media/ee1a51513cbac5b9ab59.webp" alt=""></div>
+  <div class="frame-loader"><div class="frame-loader-inner">WORKS ARCHIVE / HIGH RESOLUTION PROJECTS<div class="loading-line"><i></i></div></div></div>
+  <iframe id="worksFrame" title="Nebula Gu works archive and project details" src="works.html" loading="lazy"></iframe>
+</section>
+
+<section id="experience" class="frame-shell portfolio-section" aria-label="Experience atlas">
+  <div class="frame-loader"><div class="frame-loader-inner">EXPERIENCE ATLAS / DRAG TO EXPLORE<div class="loading-line"><i></i></div></div></div>
+  <iframe id="experienceFrame" title="Nebula Gu experience atlas" src="experience.html" loading="lazy"></iframe>
+</section>
+
+<footer id="contact" class="water-page portfolio-section" aria-label="Contact">
+  <canvas class="water-canvas" data-water aria-label="点击水面产生涟漪"></canvas>
+  <div class="contact-copy"><p class="eyebrow">CONTACT / 继续游向更蓝的海</p><h2>潜入未知<br>游向蔚蓝</h2><p class="contact-en">DIVE INTO THE UNKNOWN · SWIM TOWARD THE BLUE</p><p>期待新的想法、合作与尚未被定义的水域。</p><div class="contact-grid"><a href="mailto:1912230501@csu.edu.cn">EMAIL · 1912230501@csu.edu.cn ↗</a><a href="tel:13390899653">TEL · 133 9089 9653</a><span>WECHAT · gxy20050106gxy</span></div></div>
+  <div class="contact-foot"><span>NEBULA GU / 顾心芸</span><span>KEEP SWIMMING UNTIL THE SEA TURNS BLUE · 2026</span></div>
+</footer>
+
+<script>
+/* High-resolution interactive caustic/ripple shader copied from case-study. */
+function initWater(canvas, subtle=false){
+  if(!canvas || matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const gl=canvas.getContext('webgl2',{antialias:true});if(!gl)return;
+  const vs=`#version 300 es
+void main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);gl_Position=vec4(p*2.-1.,0,1);}`;
+  const fs=`#version 300 es
+precision highp float;out vec4 o;uniform vec2 r;uniform float t;uniform vec3 q;float c(vec2 u){float z=t*.35+19.;vec2 p=mod(u*6.283,6.283)-250.,i=p;float a=1.,k=.005;for(int n=0;n<5;n++){float x=z*(1.-3.5/float(n+1));i=p+vec2(cos(x-i.x)+sin(x+i.y),sin(x-i.y)+cos(x+i.x));a+=1./length(vec2(p.x/(sin(i.x+x)/k),p.y/(cos(i.y+x)/k)));}a/=5.;return pow(abs(1.17-pow(a,1.4)),8.);}void main(){vec2 u=gl_FragCoord.xy/r;u.x*=r.x/r.y;vec2 p=(gl_FragCoord.xy-.5*r)/r.y, rp=(q.xy-.5)*vec2(r.x/r.y,1.);float d=length(p-rp),w=sin(d*24.-q.z*8.)*exp(-d*3.5)*exp(-q.z*1.6);u+=normalize(p-rp+.0001)*w*.38;float a=c(u*1.6);vec3 col=mix(vec3(.004,.055,.11),vec3(.02,.24,.36),smoothstep(1.,-.25,length(p)));col+=vec3(.22,.85,.86)*a+vec3(.7,1.,.96)*pow(a,1.8)*.48;col*=.58+.62*smoothstep(1.3,.08,length(p));o=vec4(pow(max(col/(col+.62),0.),vec3(.84)),1.);}`;
+  const shader=(type,src)=>{const sh=gl.createShader(type);gl.shaderSource(sh,src);gl.compileShader(sh);return sh};
+  const pr=gl.createProgram();gl.attachShader(pr,shader(gl.VERTEX_SHADER,vs));gl.attachShader(pr,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pr);gl.useProgram(pr);
+  const ur=gl.getUniformLocation(pr,'r'),ut=gl.getUniformLocation(pr,'t'),uq=gl.getUniformLocation(pr,'q');let q=[.5,.5,999];
+  function resize(){const rect=canvas.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2.5);canvas.width=Math.max(1,Math.round(rect.width*d));canvas.height=Math.max(1,Math.round(rect.height*d));gl.viewport(0,0,canvas.width,canvas.height)}
+  function ripple(e){const rect=canvas.getBoundingClientRect();q=[(e.clientX-rect.left)/rect.width,1-(e.clientY-rect.top)/rect.height,0]}
+  function draw(ms){q[2]+=1/60;gl.uniform2f(ur,canvas.width,canvas.height);gl.uniform1f(ut,ms/1e3);gl.uniform3f(uq,q[0],q[1],q[2]);gl.drawArrays(gl.TRIANGLES,0,3);requestAnimationFrame(draw)}
+  resize();addEventListener('resize',resize,{passive:true});if(!subtle)canvas.addEventListener('pointerdown',ripple);requestAnimationFrame(draw);
+}
+document.querySelectorAll('[data-water]').forEach(c=>initWater(c,false));document.querySelectorAll('[data-water-subtle]').forEach(c=>initWater(c,true));
+
+/* One interactive particle layer only: a responsive dotted field that bends around the pointer. */
+(function initHeroParticles(){
+  const canvas=document.getElementById('heroParticles'),host=document.getElementById('home');if(!canvas||!host)return;
+  const ctx=canvas.getContext('2d');let W=0,H=0,D=1,pts=[],mx=-9999,my=-9999;
+  function resize(){const r=host.getBoundingClientRect();D=Math.min(devicePixelRatio||1,2);W=Math.max(1,r.width);H=Math.max(1,r.height);canvas.width=Math.round(W*D);canvas.height=Math.round(H*D);canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(D,0,0,D,0,0);pts=[];const gap=Math.max(28,Math.min(42,W/42));for(let y=gap*.65;y<H;y+=gap)for(let x=gap*.65;x<W;x+=gap)pts.push({x,y,sx:x,sy:y});}
+  host.addEventListener('pointermove',e=>{const r=host.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top},{passive:true});host.addEventListener('pointerleave',()=>{mx=my=-9999},{passive:true});
+  function draw(){ctx.clearRect(0,0,W,H);for(const p of pts){const dx=p.x-mx,dy=p.y-my,d=Math.hypot(dx,dy)||1;let tx=p.x,ty=p.y;if(d<170){const f=(1-d/170)*22;tx+=dx/d*f;ty+=dy/d*f;}p.sx+=(tx-p.sx)*.12;p.sy+=(ty-p.sy)*.12;const a=d<170?.78:.42;ctx.beginPath();ctx.arc(p.sx,p.sy,d<170?1.8:1.25,0,Math.PI*2);ctx.fillStyle='rgba(200,241,255,'+a+')';ctx.fill();}requestAnimationFrame(draw)}
+  resize();addEventListener('resize',resize,{passive:true});draw();
+})();
+
+/* Static multi-file deployment: child pages are regular files, no runtime gzip/blob decoding. */
+document.querySelectorAll('.frame-shell iframe').forEach(frame=>{
+  const shell=frame.closest('.frame-shell');
+  const done=()=>shell&&shell.classList.add('loaded');
+  frame.addEventListener('load',done,{once:true});
+  // Cached documents can occasionally complete before the listener is observed.
+  try{ if(frame.contentDocument && frame.contentDocument.readyState==='complete') done(); }catch(_){ }
+});
+
+/* Single source of truth for all navigation. */
+function go(hash){const el=document.querySelector(hash);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}
+document.querySelectorAll('.site-nav a,.hero-dive').forEach(a=>a.addEventListener('click',e=>{const h=a.getAttribute('href');if(h&&h.startsWith('#')){e.preventDefault();go(h)}}));
+addEventListener('message',e=>{const d=e.data||{};if(d.type==='nebula:navigate'&&typeof d.hash==='string')go(d.hash)});
+const navLinks=[...document.querySelectorAll('.site-links a')];const sections=['home','works','about','experience','contact'].map(id=>document.getElementById(id));const navObs=new IntersectionObserver(entries=>{const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];if(!visible)return;navLinks.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+visible.target.id))},{threshold:[.28,.45,.62]});sections.forEach(s=>navObs.observe(s));
+</script>
+</body>
+</html>

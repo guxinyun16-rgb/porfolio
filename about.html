@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nebula Gu — About</title>
+<style>
+:root{
+  --blue:#0b4dff;
+  --blue-2:#4a73ff;
+  --blue-pale:#e8efff;
+  --blue-deep:#061a35;
+  --ink:#12151a;
+  --muted:#6f7782;
+  --paper:#f4f5f7;
+  --line:#aeb6c2;
+  --bg:#fbfbfc;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+body{overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit}
+
+/* ===== INTRO / LANYARD ===== */
+.intro{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 36%,rgba(51,102,255,.10),transparent 33%),
+    linear-gradient(180deg,#fff 0%,#f6f7fa 100%);
+  transition:transform .95s cubic-bezier(.18,.82,.22,1),opacity .75s ease;
+}
+.intro.unlocked{
+  transform:translateY(-105%);
+  opacity:.15;
+  pointer-events:none;
+}
+.intro-top{
+  position:absolute;left:34px;right:34px;top:22px;z-index:20;
+  display:flex;justify-content:space-between;align-items:center;
+  font:500 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.11em;
+}
+.intro-top .brand{font-size:15px;font-weight:700;letter-spacing:.02em}
+.intro-top .blue-dot{width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block;margin-left:10px}
+.intro-note{opacity:.58}
+.stage{position:absolute;inset:0;perspective:1600px;touch-action:none;user-select:none}
+#ropeCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+.anchor{
+  position:absolute;left:50%;top:46px;transform:translateX(-50%);
+  z-index:5;width:74px;height:46px;border-radius:9px;
+  background:linear-gradient(180deg,#fdfdfd,#d7d9de 20%,#818790 50%,#e3e5e9 76%,#9da2aa);
+  box-shadow:0 8px 16px rgba(18,31,55,.14),inset 0 1px 1px rgba(255,255,255,.95);
+  display:flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,.68);font-size:19px;letter-spacing:.08em;
+}
+.anchor::after{
+  content:"";position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);
+  width:44px;height:32px;border:6px solid #a9afb7;border-top:none;border-radius:0 0 15px 15px;
+}
+.badge{
+  position:absolute;left:0;top:0;width:330px;height:495px;z-index:10;
+  transform-style:preserve-3d;transform-origin:50% 10%;cursor:grab;will-change:transform;
+}
+.badge.dragging{cursor:grabbing}
+.badge-shadow{
+  position:absolute;left:7%;right:7%;bottom:-26px;height:54px;
+  background:radial-gradient(ellipse,rgba(19,36,74,.18),transparent 68%);
+  filter:blur(9px);transform:translateZ(-40px)
+}
+.top-hook{position:absolute;left:50%;top:-64px;transform:translateX(-50%) translateZ(18px);width:64px;height:62px}
+.top-hook .ring{
+  position:absolute;left:50%;top:0;transform:translateX(-50%);
+  width:54px;height:56px;border:7px solid #a8adb5;border-radius:22px 22px 28px 28px;
+  box-shadow:inset 1px 1px 1px rgba(255,255,255,.9),0 5px 8px rgba(0,0,0,.13)
+}
+.top-hook .connector{
+  position:absolute;left:50%;bottom:-14px;transform:translateX(-50%);
+  width:18px;height:38px;border-radius:9px;background:linear-gradient(90deg,#1b1d21,#575d65 38%,#0d0e11 60%,#3c4046);
+  box-shadow:0 3px 5px rgba(0,0,0,.23)
+}
+.id-card{
+  position:absolute;inset:0;border-radius:21px;overflow:visible;
+  background:linear-gradient(135deg,rgba(255,255,255,.97),rgba(243,243,240,.99));
+  border:1px solid rgba(18,28,43,.07);
+  box-shadow:0 34px 64px rgba(33,50,84,.15),0 9px 22px rgba(33,50,84,.09),inset 0 1px 0 rgba(255,255,255,.9);
+}
+.id-card::before{
+  content:"";position:absolute;inset:0;border-radius:21px;opacity:.32;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.022),rgba(0,0,0,.022) 1px,transparent 1px,transparent 4px);
+  pointer-events:none
+}
+.slot{position:absolute;top:24px;left:50%;transform:translateX(-50%);width:58px;height:15px;border-radius:20px;background:#d0d2d2;box-shadow:inset 0 1px 3px rgba(0,0,0,.18)}
+.card-inner{position:absolute;inset:0;padding:60px 36px 30px;display:flex;flex-direction:column}
+.ng-small{font-size:13px;letter-spacing:.05em;margin-bottom:54px}
+.name-en{font-size:35px;line-height:.96;letter-spacing:-.04em;font-weight:560}
+.name-cn{font-size:29px;line-height:1.08;margin-top:10px;font-weight:500}
+.role{margin-top:30px;font-size:16px;line-height:1.45}
+.emboss{
+  position:absolute;left:38px;bottom:103px;font-size:94px;font-weight:650;line-height:1;letter-spacing:-.075em;color:#f4f4f1;
+  text-shadow:-1px -1px 1px rgba(255,255,255,.95),1px 1px 1px rgba(0,0,0,.08)
+}
+.card-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-size:12px;line-height:1.45}
+.side-hole{
+  position:absolute;right:-2px;top:56px;width:19px;height:19px;border-radius:50%;
+  background:radial-gradient(circle at 36% 30%,#fff 0 7%,#aeb3bb 12%,#5a6068 48%,#b9bec6 70%,#575c63 100%);
+  box-shadow:0 1px 3px rgba(0,0,0,.18);z-index:8
+}
+.side-ring{
+  position:absolute;right:-32px;top:47px;width:54px;height:38px;border:6px solid #aeb3bb;border-radius:50%;
+  transform:rotate(20deg);z-index:7;box-shadow:inset 1px 1px 1px rgba(255,255,255,.8),0 3px 5px rgba(0,0,0,.15)
+}
+.tags{position:absolute;right:-185px;top:46px;width:210px;height:320px;z-index:5;transform-style:preserve-3d}
+.tag{position:absolute;transform-origin:22px 18px;overflow:hidden;color:white;box-shadow:0 18px 30px rgba(17,50,150,.17);border:1px solid rgba(255,255,255,.17);will-change:transform}
+.tag-long{
+  left:20px;top:0;width:76px;height:292px;border-radius:24px 24px 35px 35px;
+  background:
+    radial-gradient(circle at 50% 92%,rgba(255,255,255,.95) 0 1px,transparent 1.7px) 0 0/11px 11px,
+    linear-gradient(180deg,#0e43ed 0%,#1b57ff 65%,#0e42df 100%)
+}
+.tag-long span{position:absolute;left:16px;top:30px;writing-mode:vertical-rl;font-size:15px;line-height:1.24}
+.tag-clear{left:68px;top:9px;width:68px;height:252px;border-radius:22px;background:linear-gradient(180deg,rgba(37,87,255,.90),rgba(97,103,234,.62));backdrop-filter:blur(5px)}
+.tag-clear::after{
+  content:"";position:absolute;inset:13px 10px;border:1px solid rgba(255,255,255,.2);
+  background:linear-gradient(rgba(255,255,255,.12) 1px,transparent 1px) 0 0/100% 24px,linear-gradient(90deg,rgba(255,255,255,.12) 1px,transparent 1px) 0 0/24px 100%
+}
+.tag-clear span{position:absolute;right:8px;bottom:20px;font-size:11px;line-height:1.22;z-index:2}
+.tag-round{
+  left:99px;top:-18px;width:112px;height:112px;border-radius:44% 56% 52% 48%/52% 46% 54% 48%;
+  background:linear-gradient(145deg,#225aff,#0b3ee7);display:flex;align-items:center;justify-content:center
+}
+.globe{width:53px;height:53px;border:2px solid white;border-radius:50%;position:relative}
+.globe::before{content:"";position:absolute;inset:7px 15px;border:1.5px solid white;border-radius:50%}
+.globe::after{content:"";position:absolute;left:0;right:0;top:24px;border-top:1.5px solid white}
+.drag-hint{
+  position:absolute;left:50%;bottom:34px;transform:translateX(-50%);z-index:30;
+  font:500 10px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.17em;color:#273140;opacity:.7;text-align:center;
+}
+.drag-progress{width:150px;height:2px;background:#d9dee7;margin:12px auto 0;overflow:hidden}
+.drag-progress i{display:block;width:0;height:100%;background:var(--blue);transition:width .12s linear}
+.drag-hint b{display:block;margin-top:9px;font-size:18px;font-weight:400;animation:bounce 1.7s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+
+/* ===== ABOUT PAGE ===== */
+.about-page{
+  min-height:100vh;
+  padding-bottom:100px;
+  background:
+    radial-gradient(circle at 75% 15%,rgba(11,77,255,.04),transparent 28%),
+    linear-gradient(180deg,#fff 0%,#fafbfc 100%);
+}
+.nav{
+  height:62px;
+  width:min(1720px,calc(100vw - 72px));
+  margin:auto;
+  display:grid;grid-template-columns:repeat(4,1fr);align-items:center;
+  font:500 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em
+}
+.nav a:nth-child(2),.nav a:nth-child(3){text-align:center}
+.nav a:last-child{text-align:right}
+.about-hero{
+  width:min(1720px,calc(100vw - 72px));
+  margin:0 auto;
+  height:170px;
+  position:relative;
+}
+.about-hero h1{
+  margin:0;
+  position:absolute;
+  left:0;top:18px;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(78px,8vw,150px);
+  line-height:.86;
+  font-weight:400;
+  letter-spacing:-.06em
+}
+.about-hero h1 span{margin-left:14vw;color:#d9dce2}
+.about-hero .sub{
+  position:absolute;right:0;bottom:22px;
+  font:500 10px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.12em;color:#8b929c;text-align:right
+}
+.workspace{
+  position:relative;
+  width:100%;
+  min-height:1040px;
+  overflow:hidden;
+  border-top:1px solid #e3e6eb;
+}
+.quick-tabs{
+  position:absolute;
+  left:36px;
+  top:18px;
+  z-index:250;
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.quick-tabs button{
+  border:1px solid #bcc4d0;
+  background:rgba(255,255,255,.88);
+  padding:8px 11px;
+  font:500 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.08em;
+  cursor:pointer;
+  transition:.2s ease
+}
+.quick-tabs button:hover,.quick-tabs button.active{
+  background:var(--blue);
+  color:white;
+  border-color:var(--blue)
+}
+.window{
+  position:absolute;
+  background:rgba(247,248,250,.97);
+  border:1px solid #aeb6c2;
+  box-shadow:0 14px 28px rgba(18,32,62,.06);
+  min-width:380px;
+  overflow:hidden;
+  transition:box-shadow .25s ease,filter .25s ease;
+  backdrop-filter:blur(7px);
+}
+.window.active{
+  box-shadow:0 26px 52px rgba(18,32,62,.14);
+}
+.window-header{
+  height:38px;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  border-bottom:1px dashed #9aa3af;
+  font:500 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.08em;
+  cursor:grab;
+  padding:0 12px;
+  background:rgba(255,255,255,.64)
+}
+.window-header:active{cursor:grabbing}
+.window-header .leftdot{width:8px;height:8px;border-radius:50%;background:var(--blue)}
+.window-header .center{text-align:center}
+.window-header .square{justify-self:end;width:7px;height:7px;background:#15171a}
+.window-body{padding:22px 24px 26px}
+.window-title{
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:52px;
+  line-height:.95;
+  font-weight:400;
+  letter-spacing:-.045em;
+  margin:0 0 18px
+}
+.small-label{
+  font:500 10px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.08em;color:#636c78
+}
+.profile-grid{
+  display:grid;
+  grid-template-columns:310px 1fr;
+  gap:28px;
+  align-items:start
+}
+.profile-photo{
+  width:100%;
+  aspect-ratio:3/4;
+  object-fit:cover;
+  object-position:center 20%;
+  filter:saturate(.88) contrast(1.02);
+}
+.profile-copy h2{
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:48px;
+  line-height:1;
+  font-weight:400;
+  margin:0 0 18px
+}
+.profile-copy p{font-size:15px;line-height:1.75;color:#505864;margin:0 0 18px}
+.info-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:0;
+  border-top:1px dashed #aab1bc;border-left:1px dashed #aab1bc;
+  margin-top:22px
+}
+.info-grid div{padding:13px 12px;border-right:1px dashed #aab1bc;border-bottom:1px dashed #aab1bc}
+.info-grid strong{display:block;font-size:18px;margin-top:5px}
+.data-table{border-top:1px dashed #9fa7b2}
+.row{
+  display:grid;
+  grid-template-columns:110px 1.2fr 1fr;
+  gap:14px;
+  padding:12px 0;
+  border-bottom:1px dashed #aab1bc;
+  align-items:start
+}
+.row .year{font:500 10px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:#5d6672}
+.row .name{font-weight:600;line-height:1.35}
+.row .meta{font-size:12px;line-height:1.45;color:#6a7280}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{
+  padding:7px 9px;border:1px solid #b6bfcc;
+  font:500 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.06em;background:white
+}
+.big-stat{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px
+}
+.big-stat div{
+  border:1px solid #b5becb;background:white;padding:18px
+}
+.big-stat strong{
+  display:block;font-family:Georgia,"Times New Roman",serif;font-size:42px;font-weight:400;color:var(--blue)
+}
+.big-stat span{font:500 9px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;color:#65707c}
+.skills-panel{
+  background:var(--blue);
+  color:white;
+}
+.skills-panel .window-header{background:rgba(0,0,0,.04);border-bottom-color:rgba(255,255,255,.5)}
+.skills-panel .leftdot{background:white}
+.skills-list{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:10px 20px
+}
+.skills-list div{
+  border-bottom:1px solid rgba(255,255,255,.38);
+  padding:8px 0;
+  font:500 11px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+
+/* window positions */
+#w-profile{left:2.2vw;top:320px;width:min(1190px,73vw);z-index:60}
+#w-research{right:2.5vw;top:40px;width:min(930px,58vw);z-index:30}
+#w-honors{left:2.2vw;top:165px;width:min(760px,50vw);z-index:45}
+#w-projects{right:6vw;top:555px;width:min(850px,55vw);z-index:35}
+#w-awards{left:12vw;top:690px;width:min(780px,51vw);z-index:25}
+#w-activities{right:2.5vw;top:810px;width:min(660px,43vw);z-index:20}
+#w-skills{left:2.2vw;top:245px;width:min(670px,48vw);z-index:55}
+
+.footer{
+  width:min(1720px,calc(100vw - 72px));
+  margin:40px auto 0;
+  display:flex;justify-content:space-between;
+  padding-top:20px;border-top:1px solid #dfe3e8;
+  font:500 10px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;color:#737b86
+}
+@media(max-width:1000px){
+  .nav,.about-hero,.footer{width:calc(100vw - 32px)}
+  .about-hero{height:135px}
+  .workspace{min-height:auto;padding:70px 16px 30px;overflow:visible}
+  .quick-tabs{left:16px;right:16px;top:14px}
+  .window{
+    position:relative!important;
+    left:auto!important;right:auto!important;top:auto!important;
+    width:100%!important;min-width:0;margin:0 0 18px;
+    transform:none!important
+  }
+  .profile-grid{grid-template-columns:1fr}
+  .profile-photo{max-width:420px}
+  .row{grid-template-columns:80px 1fr}
+  .row .meta{grid-column:2}
+  .info-grid,.big-stat{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+  .intro-top{left:18px;right:18px}.intro-note{display:none}
+  .badge{width:250px;height:375px}
+  .card-inner{padding:50px 26px 22px}.ng-small{margin-bottom:34px}.name-en{font-size:27px}.name-cn{font-size:23px}.role{font-size:14px}
+  .emboss{font-size:68px;left:28px;bottom:80px}.tags{right:-142px;transform:scale(.8);transform-origin:left top}
+  .nav{grid-template-columns:repeat(4,auto);gap:12px}
+  .about-hero h1{font-size:62px}.about-hero h1 span{margin-left:6vw}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<style id="nebula-parent-integration">
+:root{--blue:#0b4dff;--ink:#111827;--muted:#657085;--paper:#f7f9fd;--serif:Georgia,"Times New Roman",serif}
+html,body{width:100%;height:100%;overflow:hidden!important;background:transparent!important;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif!important}
+body>.nav,.about-page>.nav{display:none!important}.intro-top{display:none!important}
+/* Lanyard proportions and details follow the uploaded interaction reference. */
+.intro{height:100vh!important;min-height:0!important;background:radial-gradient(circle at 50% 31%,rgba(74,115,255,.10),transparent 31%),linear-gradient(180deg,#fff 0%,#f5f7fb 100%)!important}
+.anchor{top:68px!important;width:70px!important;height:42px!important;border-radius:10px!important}.anchor::after{bottom:-20px!important;width:40px!important;height:29px!important}
+.badge{width:320px!important;height:480px!important;cursor:grab!important}.badge.dragging{cursor:grabbing!important}
+.id-card{border-radius:20px!important}.slot{width:54px!important;height:14px!important}.card-inner{padding:58px 34px 28px!important}.ng-small{font-size:13px!important;margin-bottom:52px!important}.name-en{font-size:34px!important}.name-cn{font-size:28px!important}.role{margin-top:28px!important;font-size:16px!important}.emboss{font-size:92px!important;left:36px!important;bottom:98px!important}
+.side-hole{top:52px!important;width:18px!important;height:18px!important}.side-ring{right:-30px!important;top:44px!important;width:52px!important;height:36px!important}.tags{right:-168px!important;top:48px!important;width:190px!important;height:310px!important}.tag-long{left:18px!important;width:72px!important;height:286px!important}.tag-clear{left:62px!important;top:8px!important;width:66px!important;height:248px!important}.tag-round{left:92px!important;top:-16px!important;width:108px!important;height:108px!important}
+.drag-hint{bottom:20px!important;font-size:9px!important;letter-spacing:.13em!important}.drag-progress{width:132px!important}.drag-hint b{font-size:16px!important}
+/* Compact draggable resume workspace fitted to one 16:9 screen. */
+.about-page{height:100vh!important;min-height:0!important;padding:58px 0 0!important;overflow:hidden!important;background:linear-gradient(180deg,rgba(255,255,255,.99),rgba(246,249,255,.97))!important}
+.about-hero{width:min(1720px,calc(100vw - 56px))!important;height:94px!important;margin:0 auto!important}.about-hero h1{top:5px!important;font-family:var(--serif)!important;font-size:clamp(54px,5.5vw,92px)!important;letter-spacing:-.055em!important}.about-hero .sub{bottom:12px!important;font-size:8.5px!important;line-height:1.45!important}
+.workspace{height:calc(100vh - 152px)!important;min-height:0!important;overflow:hidden!important;background:radial-gradient(ellipse at 78% 18%,rgba(40,105,255,.04),transparent 36%),linear-gradient(180deg,rgba(252,253,255,.94),rgba(246,249,255,.93))!important}
+.quick-tabs{left:24px!important;top:9px!important;gap:6px!important}.quick-tabs button{padding:6px 10px!important;font-size:8.5px!important;border-color:#c7d2e3!important;border-radius:999px!important;background:rgba(255,255,255,.90)!important}.quick-tabs button:hover,.quick-tabs button.active{background:#0b4dff!important;color:#fff!important}
+.window{min-width:0!important;max-height:calc(100% - 20px)!important;background:rgba(250,252,255,.95)!important;border-color:#b9c5d7!important;box-shadow:0 15px 34px rgba(31,58,111,.075)!important}.window.active{box-shadow:0 24px 52px rgba(31,58,111,.13)!important}.window-header{height:30px!important;font-size:8.5px!important;background:rgba(255,255,255,.76)!important}.window-body{padding:14px 17px 16px!important;max-height:calc(100vh - 205px)!important;overflow:auto!important;scrollbar-width:none}.window-body::-webkit-scrollbar{display:none}.window-title,.profile-copy h2{font-family:var(--serif)!important}.window-title{font-size:clamp(31px,2.8vw,44px)!important;margin-bottom:11px!important}.profile-grid{grid-template-columns:185px 1fr!important;gap:18px!important}.profile-photo{max-height:300px!important}.profile-copy h2{font-size:34px!important;margin-bottom:10px!important}.profile-copy p{font-size:11.5px!important;line-height:1.52!important;margin-bottom:10px!important}.info-grid{margin-top:10px!important}.info-grid div{padding:7px 8px!important}.info-grid strong{font-size:14px!important}.row{grid-template-columns:78px 1.1fr 1fr!important;gap:9px!important;padding:6px 0!important}.row .year{font-size:8px!important}.row .name{font-size:10px!important}.row .meta{font-size:9px!important}.big-stat{gap:7px!important;margin-top:8px!important}.big-stat div{padding:10px!important}.big-stat strong{font-size:29px!important}.chip{padding:4px 6px!important;font-size:8px!important}.skills-list{gap:6px 14px!important}.skills-list div{padding:5px 0!important;font-size:8.5px!important}
+#w-profile{left:1.8vw!important;top:142px!important;width:min(900px,62vw)!important;z-index:60}
+#w-research{right:1.8vw!important;top:18px!important;width:min(700px,47vw)!important;z-index:30}
+#w-honors{left:1.8vw!important;top:82px!important;width:min(560px,38vw)!important;z-index:45}
+#w-projects{right:3.5vw!important;top:290px!important;width:min(660px,44vw)!important;z-index:35}
+#w-awards{left:8vw!important;top:400px!important;width:min(590px,39vw)!important;z-index:25}
+#w-activities{right:1.8vw!important;top:415px!important;width:min(540px,36vw)!important;z-index:20}
+#w-skills{left:1.8vw!important;top:118px!important;width:min(500px,34vw)!important;z-index:55}.footer{display:none!important}
+@media(max-height:820px) and (min-width:1001px){.about-hero{height:82px!important}.workspace{height:calc(100vh - 140px)!important}.window-body{max-height:calc(100vh - 185px)!important}#w-profile{top:118px!important;width:58vw!important}#w-research{top:14px!important;width:44vw!important}#w-honors{top:72px!important;width:35vw!important}#w-projects{top:250px!important;width:41vw!important}#w-awards{top:350px!important;width:36vw!important}#w-activities{top:365px!important;width:34vw!important}#w-skills{top:102px!important;width:31vw!important}}
+@media(max-width:1000px){html,body{overflow:auto!important}.about-page{height:auto!important;min-height:100vh!important;overflow:auto!important}.workspace{height:auto!important;min-height:0!important;overflow:visible!important;padding:64px 16px 24px!important}.about-hero{width:calc(100vw - 32px)!important}.window{position:relative!important;left:auto!important;right:auto!important;top:auto!important;width:100%!important;margin-bottom:12px!important;max-height:none!important}.window-body{max-height:none!important}.profile-grid{grid-template-columns:1fr!important}}
+</style>
+
+<style id="nebula-about-v4">
+.back-to-id{
+  position:fixed;right:24px;top:72px;z-index:980;
+  border:1px solid rgba(11,77,255,.18);background:#0b4dff;color:#fff;
+  padding:10px 14px;border-radius:999px;cursor:pointer;
+  font:700 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.09em;
+  box-shadow:0 12px 28px rgba(11,77,255,.20);
+  transition:transform .2s ease,box-shadow .2s ease,background .2s ease;
+}
+.back-to-id:hover{transform:translateX(-3px);background:#003fe0;box-shadow:0 16px 34px rgba(11,77,255,.28)}
+.window-header{touch-action:none!important;user-select:none!important}
+.window{will-change:left,top!important}
+@media(max-width:1000px){.back-to-id{position:sticky;top:68px;float:right;margin:0 16px 8px 0}}
+</style>
+
+</head>
+<body>
+
+<section class="intro" id="intro">
+  <div class="intro-top">
+    <div><span class="brand">NEBULA GU</span><span class="blue-dot"></span></div>
+    <div class="intro-note">DRAG THE ID · UNLOCK THE PROFILE</div>
+  </div>
+  <div class="stage" id="stage">
+    <canvas id="ropeCanvas"></canvas>
+    <div class="anchor">NG</div>
+
+    <div class="badge" id="badge">
+      <div class="badge-shadow"></div>
+      <div class="top-hook"><div class="ring"></div><div class="connector"></div></div>
+      <div class="id-card">
+        <div class="slot"></div>
+        <div class="card-inner">
+          <div class="ng-small">NG-01</div>
+          <div class="name-en">NEBULA GU</div>
+          <div class="name-cn">顾心芸</div>
+          <div class="role">Interaction / Product /<br>AI Designer</div>
+          <div class="emboss">NG</div>
+          <div class="card-foot">
+            <div>Keep Swimming<br>Until the Sea<br>Turns Blue</div>
+            <div style="text-align:right">2026<br>CHINA</div>
+          </div>
+        </div>
+        <div class="side-hole"></div>
+        <div class="side-ring"></div>
+        <div class="tags" id="tags">
+          <div class="tag tag-long" id="tag1"><span>Keep Swimming<br>Until the Sea Turns Blue</span></div>
+          <div class="tag tag-clear" id="tag2"><span>DESIGN<br>EXPLORE<br>CONNECT</span></div>
+          <div class="tag tag-round" id="tag3"><div class="globe"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="drag-hint">
+    DRAG THE BADGE TO UNLOCK ABOUT ME
+    <div class="drag-progress"><i id="dragBar"></i></div>
+    <b>↓</b>
+  </div>
+</section>
+
+<main class="about-page" id="about">
+  <button class="back-to-id" id="backToId" type="button">← BACK TO ID</button>
+  <nav class="nav">
+    <a href="#">HOME</a>
+    <a href="#">WORKS</a>
+    <a href="#about">ABOUT</a>
+    <a href="mailto:1912230501@csu.edu.cn">CONTACT</a>
+  </nav>
+
+  <section class="about-hero">
+    <h1>About <span>me</span></h1>
+    <div class="sub">NEBULA GU / 顾心芸<br>PRODUCT · INTERACTION · AI · CONCEPT</div>
+  </section>
+
+  <section class="workspace" id="workspace">
+    <div class="quick-tabs">
+      <button data-target="w-profile" class="active">PROFILE</button>
+      <button data-target="w-research">RESEARCH</button>
+      <button data-target="w-projects">PROJECTS</button>
+      <button data-target="w-honors">HONORS</button>
+      <button data-target="w-awards">AWARDS</button>
+      <button data-target="w-activities">ACTIVITIES</button>
+    </div>
+
+    <article class="window" id="w-research">
+      <div class="window-header"><i class="leftdot"></i><span class="center">RESEARCH EXPERIENCE</span><i class="square"></i></div>
+      <div class="window-body">
+        <h2 class="window-title">Research</h2>
+        <div class="data-table">
+          <div class="row"><span class="year">2026.04–06</span><span class="name">The Gaze Protocol</span><span class="meta">面向公众算法偏见认知的手势交互科普严肃游戏 · 第一作者 · 论文在投</span></div>
+          <div class="row"><span class="year">2026.02–04</span><span class="name">SomaBand</span><span class="meta">支持产后腹直肌分离居家康复的具身交互系统设计研究 · 第一作者 · 论文在投</span></div>
+          <div class="row"><span class="year">2025.05–06</span><span class="name">非遗数字化体验设计研究</span><span class="meta">以贵州苗绣植物纹样为例 · 第二作者</span></div>
+          <div class="row"><span class="year">2024.07–2025.06</span><span class="name">数智课堂学习效果实验研究</span><span class="meta">教师性别与出镜方式对学习效果和效率的影响探究 · 实验研究</span></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="window" id="w-honors">
+      <div class="window-header"><i class="leftdot"></i><span class="center">PERSONAL HONORS</span><i class="square"></i></div>
+      <div class="window-body">
+        <h2 class="window-title">Honors</h2>
+        <div class="big-stat">
+          <div><strong>02</strong><span>NATIONAL SCHOLARSHIPS<br>2023–2024 / 2024–2025</span></div>
+          <div><strong>1/147</strong><span>MAJOR RANKING</span></div>
+          <div><strong>91.41</strong><span>WEIGHTED SCORE</span></div>
+        </div>
+        <div class="chips">
+          <span class="chip">中南大学校一等奖学金</span>
+          <span class="chip">中南大学优秀学生</span>
+          <span class="chip">中南大学优秀团员</span>
+          <span class="chip">校体育建设先进个人</span>
+          <span class="chip">院学风建设先进个人</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="window skills-panel" id="w-skills">
+      <div class="window-header"><i class="leftdot"></i><span class="center">SKILLSETS</span><i class="square"></i></div>
+      <div class="window-body">
+        <h2 class="window-title">Skillsets</h2>
+        <div class="skills-list">
+          <div>INTERACTION DESIGN</div><div>PRODUCT DESIGN</div>
+          <div>AI DESIGN</div><div>CONCEPT DESIGN</div>
+          <div>UNITY / ARDUINO</div><div>TOUCHDESIGNER</div>
+          <div>FIGMA / ADOBE</div><div>BLENDER / KEYSHOT</div>
+          <div>RESEARCH / PROTOTYPING</div><div>VISUAL STORYTELLING</div>
+        </div>
+      </div>
+    </article>
+
+    <article class="window active" id="w-profile">
+      <div class="window-header"><i class="leftdot"></i><span class="center">PROFILE</span><i class="square"></i></div>
+      <div class="window-body">
+        <div class="profile-grid">
+          <img class="profile-photo" src="assets/media/db283e72e92798294d22.webp" alt="顾心芸个人照片">
+          <div class="profile-copy">
+            <div class="small-label">HELLO / I AM NEBULA GU</div>
+            <h2>顾心芸<br><span style="color:var(--blue)">Nebula Gu</span></h2>
+            <p>中南大学建筑与艺术学院产品设计 23 级本科生。我关注人与技术、身体和未来系统之间的关系，并通过交互、产品、实体原型与智能技术，把复杂问题转化为可以被感知、理解和参与的体验。</p>
+            <p>我的项目覆盖具身交互、健康科技、AI 共创、未来出行与社会技术议题。比起单一的“产品”或“界面”，我更关注一个系统如何被真实地体验、验证和落地。</p>
+            <div class="info-grid">
+              <div><span class="small-label">UNIVERSITY</span><strong>中南大学</strong></div>
+              <div><span class="small-label">MAJOR</span><strong>产品设计</strong></div>
+              <div><span class="small-label">RANK</span><strong>1 / 147</strong></div>
+              <div><span class="small-label">CET-4</span><strong>566</strong></div>
+              <div><span class="small-label">CET-6</span><strong>539</strong></div>
+              <div><span class="small-label">LOCATION</span><strong>江苏苏州</strong></div>
+            </div>
+            <div class="chips">
+              <span class="chip">1912230501@csu.edu.cn</span>
+              <span class="chip">13390899653</span>
+              <span class="chip">中共党员</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="window" id="w-projects">
+      <div class="window-header"><i class="leftdot"></i><span class="center">PROJECT EXPERIENCE</span><i class="square"></i></div>
+      <div class="window-body">
+        <h2 class="window-title">Projects</h2>
+        <div class="data-table">
+          <div class="row"><span class="year">2025.10–2026.03</span><span class="name">2025 年度智慧出行设计创新探索</span><span class="meta">AI 时代汽车设计差异化探索 · 校企合作 · TOP 3</span></div>
+          <div class="row"><span class="year">2025.10–12</span><span class="name">苏泊尔可持续吸尘器</span><span class="meta">校企合作项目 · 核心成员</span></div>
+          <div class="row"><span class="year">2025.03–05</span><span class="name">哈尔斯智能水杯</span><span class="meta">校企合作项目 · 核心成员</span></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="window" id="w-awards">
+      <div class="window-header"><i class="leftdot"></i><span class="center">COMPETITION AWARDS</span><i class="square"></i></div>
+      <div class="window-body">
+        <h2 class="window-title">Awards</h2>
+        <div class="big-stat">
+          <div><strong>03</strong><span>INTERNATIONAL AWARDS</span></div>
+          <div><strong>13</strong><span>NATIONAL-LEVEL AWARDS</span></div>
+          <div><strong>01</strong><span>NCDA NATIONAL FIRST PRIZE</span></div>
+        </div>
+        <div class="data-table" style="margin-top:16px">
+          <div class="row"><span class="year">2026.05</span><span class="name">CADA Japan Conceptual Art Design</span><span class="meta">Bronze Award</span></div>
+          <div class="row"><span class="year">2026.04</span><span class="name">The G-CROSS Design Awards in the UK</span><span class="meta">Bronze Award</span></div>
+          <div class="row"><span class="year">2025.03</span><span class="name">MUSE Design Award in the US</span><span class="meta">Silver Award</span></div>
+          <div class="row"><span class="year">2025.08</span><span class="name">NCDA 全国高校数字艺术设计大赛</span><span class="meta">全国一等奖</span></div>
+          <div class="row"><span class="year">2025.09</span><span class="name">东方设计奖 WZD 纹藏专项赛</span><span class="meta">国家一等奖</span></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="window" id="w-activities">
+      <div class="window-header"><i class="leftdot"></i><span class="center">LEADERSHIP & ACTIVITIES</span><i class="square"></i></div>
+      <div class="window-body">
+        <h2 class="window-title">Beyond</h2>
+        <div class="data-table">
+          <div class="row"><span class="year">2024–2025</span><span class="name">院团委组织部部长</span><span class="meta">学生工作</span></div>
+          <div class="row"><span class="year">2025–2026</span><span class="name">山那边公益践行协会会长</span><span class="meta">学生组织</span></div>
+          <div class="row"><span class="year">2024.07</span><span class="name">江华瑶族自治县大圩镇第二小学支教</span><span class="meta">实践活动</span></div>
+          <div class="row"><span class="year">2025.08</span><span class="name">苏州轩昂工业设计公司</span><span class="meta">实习</span></div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <footer class="footer">
+    <span>NEBULA GU / 顾心芸</span>
+    <span>KEEP SWIMMING UNTIL THE SEA TURNS BLUE</span>
+    <span>2026</span>
+  </footer>
+</main>
+
+<script>
+/* ===== LANYARD PHYSICS ===== */
+(() => {
+  const intro=document.getElementById('intro');
+  const badge=document.getElementById('badge');
+  const canvas=document.getElementById('ropeCanvas');
+  const ctx=canvas.getContext('2d');
+  const dragBar=document.getElementById('dragBar');
+  const tagEls=[document.getElementById('tag1'),document.getElementById('tag2'),document.getElementById('tag3')];
+
+  let W=innerWidth,H=innerHeight,DPR=Math.min(devicePixelRatio||1,2);
+  let badgeW=330,badgeH=495;
+  const N=10,points=[]; let segLen=20,gravity=1400,damping=.992,iterations=8;
+  let dragging=false,pointerId=null,grabOffset={x:0,y:0},pointer={x:W/2,y:H*.52},prevPointer={x:0,y:0,t:0},throwVel={x:0,y:0};
+  let bodyAngle=0,bodyAngVel=0,tiltX=0,tiltY=0;
+  let startPoint=null,maxDrag=0,unlocked=false;
+  const tagState=[
+    {a:-10,v:0,base:-10,stiff:.075,damp:.88},
+    {a:5,v:0,base:5,stiff:.060,damp:.90},
+    {a:8,v:0,base:8,stiff:.050,damp:.92}
+  ];
+
+  function size(){
+    W=innerWidth;H=innerHeight;DPR=Math.min(devicePixelRatio||1,2);
+    canvas.width=W*DPR;canvas.height=H*DPR;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);
+    badgeW=innerWidth<=760?250:330;badgeH=innerWidth<=760?375:495;segLen=Math.max(16,Math.min(21,H/50));
+    const ax=W/2,ay=108;
+    if(!points.length){for(let i=0;i<N;i++){let py=ay+i*segLen;points.push({x:ax,y:py,px:ax,py:py})}}
+    points[0].x=points[0].px=ax;points[0].y=points[0].py=ay;
+  }
+  addEventListener('resize',size);size();
+
+  function integrate(dt){
+    const dt2=dt*dt;
+    for(let i=1;i<N;i++){
+      const p=points[i],vx=(p.x-p.px)*damping,vy=(p.y-p.py)*damping;
+      p.px=p.x;p.py=p.y;p.x+=vx;p.y+=vy+gravity*dt2;
+    }
+  }
+  function satisfy(){
+    points[0].x=points[0].px=W/2;points[0].y=points[0].py=108;
+    for(let k=0;k<iterations;k++){
+      for(let i=0;i<N-1;i++){
+        const a=points[i],b=points[i+1];let dx=b.x-a.x,dy=b.y-a.y,dist=Math.hypot(dx,dy)||.0001,diff=(dist-segLen)/dist;
+        if(i===0){b.x-=dx*diff;b.y-=dy*diff}else{a.x+=dx*diff*.5;a.y+=dy*diff*.5;b.x-=dx*diff*.5;b.y-=dy*diff*.5}
+      }
+    }
+  }
+  function curvePoints(){
+    const out=[];
+    for(let i=0;i<points.length-1;i++){
+      const p0=points[Math.max(0,i-1)],p1=points[i],p2=points[i+1],p3=points[Math.min(points.length-1,i+2)];
+      for(let t=0;t<1;t+=.16){
+        const t2=t*t,t3=t2*t;
+        out.push({
+          x:.5*((2*p1.x)+(-p0.x+p2.x)*t+(2*p0.x-5*p1.x+4*p2.x-p3.x)*t2+(-p0.x+3*p1.x-3*p2.x+p3.x)*t3),
+          y:.5*((2*p1.y)+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3)
+        })
+      }
+    }
+    out.push({...points.at(-1)});return out;
+  }
+  function stroke(curve,offset,width,color,blur=0){
+    ctx.save();if(blur){ctx.shadowBlur=blur;ctx.shadowColor='rgba(22,37,80,.18)'}
+    ctx.beginPath();
+    curve.forEach((p,i)=>{
+      const prev=curve[Math.max(0,i-1)],next=curve[Math.min(curve.length-1,i+1)];
+      let dx=next.x-prev.x,dy=next.y-prev.y,len=Math.hypot(dx,dy)||1,nx=-dy/len,ny=dx/len;
+      const x=p.x+nx*offset,y=p.y+ny*offset;i?ctx.lineTo(x,y):ctx.moveTo(x,y)
+    });
+    ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();ctx.restore();
+  }
+  function drawRope(){
+    ctx.clearRect(0,0,W,H);const c=curvePoints();
+    stroke(c,0,24,'rgba(19,38,90,.10)',10);stroke(c,-5.2,9.2,'#184ef9');stroke(c,5.2,9.2,'#0f43ec');stroke(c,-6.5,2,'rgba(255,255,255,.34)');stroke(c,3.8,1.5,'rgba(255,255,255,.18)');
+  }
+  function updateBadge(dt){
+    const end=points.at(-1),prev=points.at(-2);
+    const vx=(end.x-end.px)/Math.max(dt,.001),vy=(end.y-end.py)/Math.max(dt,.001);
+    const rawAngle=Math.atan2(end.x-prev.x,end.y-prev.y)*180/Math.PI*.52+vx*.0035;const targetAngle=Math.max(-16,Math.min(16,rawAngle));
+    bodyAngVel+=(targetAngle-bodyAngle)*.055;bodyAngVel*=.78;bodyAngle+=bodyAngVel;bodyAngle=Math.max(-18,Math.min(18,bodyAngle));
+    tiltY+=(vx*.015-tiltY)*.08;tiltX+=(-vy*.006-tiltX)*.06;tiltX=Math.max(-8,Math.min(8,tiltX));tiltY=Math.max(-11,Math.min(11,tiltY));
+    badge.style.transform=`translate3d(${end.x-badgeW/2}px,${end.y+52}px,0) rotateZ(${bodyAngle}deg) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+    const drive=bodyAngle*.14+vx*.004;
+    tagState.forEach((s,i)=>{let target=s.base-drive*(1-i*.22);s.v+=(target-s.a)*s.stiff;s.v*=s.damp;s.a+=s.v});
+    tagEls[0].style.transform=`rotate(${tagState[0].a}deg)`;tagEls[1].style.transform=`rotate(${tagState[1].a}deg)`;tagEls[2].style.transform=`rotate(${tagState[2].a}deg)`;
+  }
+  badge.addEventListener('pointerdown',e=>{
+    dragging=true;pointerId=e.pointerId;badge.classList.add('dragging');badge.setPointerCapture(pointerId);
+    const end=points.at(-1);grabOffset.x=e.clientX-end.x;grabOffset.y=e.clientY-end.y;pointer={x:e.clientX,y:e.clientY};
+    prevPointer={x:e.clientX,y:e.clientY,t:performance.now()};startPoint={x:e.clientX,y:e.clientY};maxDrag=0;
+  });
+  badge.addEventListener('pointermove',e=>{
+    if(!dragging||e.pointerId!==pointerId)return;
+    const now=performance.now(),dt=Math.max(12,now-prevPointer.t)/1000;
+    throwVel.x=(e.clientX-prevPointer.x)/dt;throwVel.y=(e.clientY-prevPointer.y)/dt;pointer={x:e.clientX,y:e.clientY};
+    prevPointer={x:e.clientX,y:e.clientY,t:now};
+    maxDrag=Math.max(maxDrag,Math.hypot(e.clientX-startPoint.x,e.clientY-startPoint.y));
+    dragBar.style.width=Math.min(100,maxDrag/160*100)+'%';
+  });
+  function release(e){
+    if(!dragging)return;
+    dragging=false;badge.classList.remove('dragging');try{badge.releasePointerCapture(pointerId)}catch{}
+    const end=points.at(-1);end.px=end.x-throwVel.x/60*.10;end.py=end.y-throwVel.y/60*.10;pointerId=null;
+    if((maxDrag>92||maxDrag<7)&&!unlocked){
+      unlocked=true;dragBar.style.width='100%';
+      setTimeout(()=>{intro.classList.add('unlocked');document.getElementById('about').scrollIntoView({behavior:'smooth'})},280);
+    } else {dragBar.style.width='0%'}
+  }
+  badge.addEventListener('pointerup',release);badge.addEventListener('pointercancel',release);
+
+  let last=performance.now();
+  function frame(now){
+    let dt=Math.min(.026,(now-last)/1000||1/60);last=now;integrate(dt);
+    if(dragging){
+      const end=points.at(-1),tx=pointer.x-grabOffset.x,ty=pointer.y-grabOffset.y;end.px=end.x;end.py=end.y;end.x+=(tx-end.x)*.72;end.y+=(ty-end.y)*.72
+    }
+    satisfy();drawRope();updateBadge(dt);requestAnimationFrame(frame)
+  }
+  requestAnimationFrame(frame);
+})();
+
+/* ===== INTERACTIVE WINDOWS ===== */
+(() => {
+  const workspace=document.getElementById('workspace');
+  const windows=[...document.querySelectorAll('.window')];
+  const tabs=[...document.querySelectorAll('.quick-tabs button')];
+  let topZ=100;
+
+  function bringFront(win){
+    topZ++;
+    windows.forEach(w=>w.classList.remove('active'));
+    win.classList.add('active');
+    win.style.zIndex=topZ;
+    tabs.forEach(b=>b.classList.toggle('active',b.dataset.target===win.id));
+  }
+  windows.forEach(win=>{
+    win.addEventListener('pointerdown',()=>bringFront(win));
+    const header=win.querySelector('.window-header');
+    let dragging=false,pid=null,startX=0,startY=0,left=0,top=0;
+
+    header.addEventListener('pointerdown',e=>{
+      if(innerWidth<=1000)return;
+      dragging=true;pid=e.pointerId;header.setPointerCapture(pid);bringFront(win);
+      const r=win.getBoundingClientRect(),wr=workspace.getBoundingClientRect();
+      startX=e.clientX;startY=e.clientY;left=r.left-wr.left;top=r.top-wr.top;
+      win.style.right='auto';
+    });
+    header.addEventListener('pointermove',e=>{
+      if(!dragging||e.pointerId!==pid)return;
+      const wr=workspace.getBoundingClientRect();
+      let nx=left+(e.clientX-startX),ny=top+(e.clientY-startY);
+      nx=Math.max(0,Math.min(wr.width-win.offsetWidth,nx));
+      ny=Math.max(0,Math.min(wr.height-win.offsetHeight,ny));
+      win.style.left=nx+'px';win.style.top=ny+'px';
+    });
+    const stop=e=>{if(!dragging)return;dragging=false;try{header.releasePointerCapture(pid)}catch{};pid=null};
+    header.addEventListener('pointerup',stop);header.addEventListener('pointercancel',stop);
+  });
+  tabs.forEach(btn=>btn.addEventListener('click',()=>bringFront(document.getElementById(btn.dataset.target))));
+  bringFront(document.getElementById('w-profile'));
+})();
+</script>
+
+<script>
+(()=>{
+  const KEY='about';
+  const send=(hash)=>parent.postMessage({type:'nebula:navigate',hash},'*');
+  document.addEventListener('click',e=>{
+    const a=e.target.closest&&e.target.closest('a'); if(!a)return;
+    const text=(a.textContent||'').trim().toUpperCase();
+    const href=(a.getAttribute('href')||'').trim();
+    let hash='';
+    if(text==='HOME')hash='#home';
+    else if(text==='WORK'||text==='WORKS'||href==='#works')hash='#works';
+    else if(text==='ABOUT'||href==='#about')hash='#about';
+    else if(text==='ARCHIVE')hash='#experience';
+    else if(text==='CONTACT'||href==='#contact')hash='#contact';
+    if(hash){e.preventDefault();send(hash);}
+  },true);
+  addEventListener('load',()=>parent.postMessage({type:'nebula:frame-ready',key:KEY},'*'));
+})();
+</script>
+
+<script id="nebula-about-v4-script">
+(()=>{
+  const intro=document.getElementById('intro');
+  const back=document.getElementById('backToId');
+  const badge=document.getElementById('badge');
+  if(back&&intro){
+    back.addEventListener('click',()=>{
+      intro.classList.remove('unlocked');
+      const bar=document.getElementById('dragBar'); if(bar) bar.style.width='0%';
+    });
+  }
+  /* After returning to the ID card, a click or drag-release opens the resume again. */
+  if(badge&&intro){
+    badge.addEventListener('pointerup',()=>{
+      if(!intro.classList.contains('unlocked')){
+        setTimeout(()=>intro.classList.add('unlocked'),170);
+      }
+    });
+  }
+})();
+</script>
+
+
+<style id="nebula-about-v5">
+/* V5: more breathing room around the lanyard while preserving the original interaction. */
+@media(min-width:1001px){
+  .badge{width:286px!important;height:429px!important}
+  .card-inner{padding:52px 30px 24px!important}
+  .ng-small{font-size:11px!important;margin-bottom:42px!important}
+  .name-en{font-size:30px!important}.name-cn{font-size:25px!important}.role{font-size:14px!important;margin-top:23px!important}
+  .emboss{font-size:80px!important;left:32px!important;bottom:90px!important}
+  .card-foot{font-size:10px!important}
+  .tags{right:-166px!important;top:40px!important;transform:scale(.88);transform-origin:left top}
+  .drag-hint{bottom:22px!important}
+}
+.window{will-change:left,top,z-index;touch-action:none}
+.window-header{touch-action:none!important;user-select:none!important;cursor:grab!important}
+.window-header:active{cursor:grabbing!important}
+.window.active .window-header{background:rgba(238,245,255,.92)!important}
+.window-header .center::after{content:"  ·  DRAG";font-size:7px;letter-spacing:.14em;color:#7890b4}
+.quick-tabs{pointer-events:auto!important}
+.back-to-id{z-index:999!important}
+</style>
+<script id="nebula-about-drag-v5">
+/* Reinforce window dragging even after responsive layout changes. */
+(()=>{
+  const workspace=document.getElementById('workspace');
+  if(!workspace)return;
+  let z=500;
+  document.querySelectorAll('.window').forEach(win=>{
+    const header=win.querySelector('.window-header');
+    if(!header)return;
+    const front=()=>{win.style.zIndex=++z;document.querySelectorAll('.window').forEach(w=>w.classList.toggle('active',w===win));};
+    win.addEventListener('pointerdown',front);
+    header.addEventListener('dblclick',front);
+  });
+})();
+</script>
+
+</body>
+</html>
