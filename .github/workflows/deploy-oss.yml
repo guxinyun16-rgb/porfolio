@@ -1,0 +1,71 @@
+# Deploys the static site to Aliyun OSS on every push to main.
+#
+# Required repository secrets:
+#   OSS_BUCKET      bucket name, e.g. nebulagu-portfolio
+#   OSS_ENDPOINT    e.g. oss-cn-hangzhou.aliyuncs.com (no scheme)
+#   OSS_REGION      e.g. cn-hangzhou  (ossutil 2.x requires it for V4 signing)
+#   OSS_AK_ID       AccessKey ID of a RAM user scoped to this bucket only
+#   OSS_AK_SECRET   matching AccessKey secret
+#
+# The bucket must already exist, be public-read, and have static website
+# hosting enabled with index.html as the default page.
+
+name: Deploy to Aliyun OSS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: oss-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ossutil
+        run: |
+          curl -fsSL -o ossutil.zip \
+            https://gosspublic.alicdn.com/ossutil/v2/2.4.1/ossutil-2.4.1-linux-amd64.zip
+          unzip -q ossutil.zip
+          chmod 755 ossutil-2.4.1-linux-amd64/ossutil
+          sudo mv ossutil-2.4.1-linux-amd64/ossutil /usr/local/bin/ossutil
+          ossutil version
+
+      - name: Upload pages
+        env:
+          OSS_BUCKET: ${{ secrets.OSS_BUCKET }}
+          OSS_ENDPOINT: ${{ secrets.OSS_ENDPOINT }}
+          OSS_REGION: ${{ secrets.OSS_REGION }}
+          OSS_AK_ID: ${{ secrets.OSS_AK_ID }}
+          OSS_AK_SECRET: ${{ secrets.OSS_AK_SECRET }}
+        run: |
+          ossutil cp -r . "oss://$OSS_BUCKET/" \
+            --include "*.html" \
+            --cache-control "no-cache" \
+            --region "$OSS_REGION" \
+            --endpoint "$OSS_ENDPOINT" \
+            --access-key-id "$OSS_AK_ID" \
+            --access-key-secret "$OSS_AK_SECRET" \
+            --force --no-progress
+
+      - name: Upload assets
+        env:
+          OSS_BUCKET: ${{ secrets.OSS_BUCKET }}
+          OSS_ENDPOINT: ${{ secrets.OSS_ENDPOINT }}
+          OSS_REGION: ${{ secrets.OSS_REGION }}
+          OSS_AK_ID: ${{ secrets.OSS_AK_ID }}
+          OSS_AK_SECRET: ${{ secrets.OSS_AK_SECRET }}
+        run: |
+          ossutil cp -r ./assets "oss://$OSS_BUCKET/assets/" \
+            --size-only \
+            --cache-control "public, max-age=31536000, immutable" \
+            --region "$OSS_REGION" \
+            --endpoint "$OSS_ENDPOINT" \
+            --access-key-id "$OSS_AK_ID" \
+            --access-key-secret "$OSS_AK_SECRET" \
+            --force --no-progress
